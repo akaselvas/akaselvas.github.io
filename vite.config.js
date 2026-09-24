@@ -1,9 +1,14 @@
 // vite.config.js
 import { defineConfig } from 'vite';
 
-export default defineConfig({
-  base: '/selvas/', // Match your GitHub repo name
+export default defineConfig(({ command }) => ({
+  base: '/selvas/',
   build: {
-    outDir: 'docs', // <- GitHub Pages will read from /docs folder
-  }
-});
+    outDir: 'docs',
+  },
+  // Drop console.log and debugger statements in production builds only.
+  // In dev mode they remain so you can debug normally.
+  esbuild: {
+    drop: command === 'build' ? ['console', 'debugger'] : [],
+  },
+}));

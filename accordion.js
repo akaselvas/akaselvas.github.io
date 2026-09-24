@@ -2,70 +2,48 @@
 
 const Accordion = {
     init: function() {
-        const accordionContainer = document.querySelector('.about-us .about-accordion');
-        if (!accordionContainer) return false;
+        const accordionItems = document.querySelectorAll('.accordion-item');
 
-        const accordionItems = accordionContainer.querySelectorAll('.accordion-item');
         if (accordionItems.length === 0) return false;
 
-        // --- Estimate total close animation time ---
-        // This should roughly match your CSS:
-        // - Content collapse duration (approx 0.5s from your CSS)
-        // - Underline delay (0.4s)
-        // - Underline fade duration (0.2s)
-        // Add a small buffer.
-        const closeAnimationDuration = 500 + 400 + 200 + 100; // 1200ms (content + delay + fade + buffer)
+        // Read the total close-animation duration from a CSS custom property so it
+        // stays in sync with the stylesheet automatically.  Fall back to 1200 ms
+        // (500 + 400 + 200 + 100) if the variable is not defined.
+        const rawVar = getComputedStyle(document.documentElement)
+            .getPropertyValue('--accordion-close-duration').trim();
+        const CLOSE_ANIMATION_DURATION = rawVar ? parseInt(rawVar, 10) : 1200;
 
         accordionItems.forEach(item => {
             const header = item.querySelector('.accordion-header');
             if (!header) {
-                console.warn("Accordion item missing header:", item);
-                return; // Skip this item
+                console.warn('Accordion item missing header:', item);
+                return;
             }
 
-            // Clear any lingering closing timeouts if clicked again quickly
             let closeTimeoutId = null;
 
             header.addEventListener('click', () => {
                 const isActive = item.classList.contains('active');
 
-                // Clear previous timeout if it exists
                 if (closeTimeoutId) {
                     clearTimeout(closeTimeoutId);
                     closeTimeoutId = null;
-                    // Force remove is-closing if interrupted
                     item.classList.remove('is-closing');
                 }
 
-                // --- Optional: Close other active items ---
-                /*
-                accordionItems.forEach(otherItem => {
-                    if (otherItem !== item && otherItem.classList.contains('active')) {
-                        otherItem.classList.remove('active');
-                        // If closing others, you might want to add 'is-closing' briefly too
-                        // otherItem.classList.add('is-closing');
-                        // setTimeout(() => otherItem.classList.remove('is-closing'), closeAnimationDuration);
-                    }
-                });
-                */
-                // --- End Optional Block ---
-
                 if (isActive) {
                     // --- Clicking to CLOSE ---
-                    item.classList.add('is-closing'); // Add helper class
-                    item.classList.remove('active');  // Remove active state
+                    item.classList.add('is-closing');
+                    item.classList.remove('active');
 
-                    // Set timeout to remove the helper class after animations
                     closeTimeoutId = setTimeout(() => {
                         item.classList.remove('is-closing');
-                        closeTimeoutId = null; // Clear the stored ID
-                    }, closeAnimationDuration); // Use calculated duration
-
+                        closeTimeoutId = null;
+                    }, CLOSE_ANIMATION_DURATION);
                 } else {
                     // --- Clicking to OPEN ---
-                    // Ensure is-closing is removed if somehow present
                     item.classList.remove('is-closing');
-                    item.classList.add('active'); // Add active state (CSS handles instant hide)
+                    item.classList.add('active');
                 }
             });
         });

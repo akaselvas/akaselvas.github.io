@@ -1,5 +1,4 @@
 window.onload = init;
-console.ward = function () { }; // what warnings?
 
 function init() {
 	var root = new THREERoot({
@@ -17,11 +16,19 @@ function init() {
 
 	const basePath = '/selvas';
 
+	// Carrossel com 4 imagens: alterna entre os pares (01/02) e (03/04) a cada loop
+	var images = [
+		`${basePath}/img/01.jpg`,
+		`${basePath}/img/02.jpg`,
+		`${basePath}/img/03.jpg`,
+		`${basePath}/img/04.jpg`
+	];
+
 	var slide = new Slide(width, height, "out");
 	var l1 = new THREE.ImageLoader();
 	l1.setCrossOrigin("Anonymous");
 	slide.setImage(
-		l1.load(`${basePath}/img/01.jpg`)
+		l1.load(images[0])
 	);
 	root.scene.add(slide);
 
@@ -29,21 +36,34 @@ function init() {
 	var l2 = new THREE.ImageLoader();
 	l2.setCrossOrigin("Anonymous");
 	slide2.setImage(
-		l2.load(`${basePath}/img/02.jpg`)
+		l2.load(images[1])
 	);
 	root.scene.add(slide2);
 
+	// O yoyo é essencial: é ele que faz a transição tocar pra frente
+	// (slide2 "in" cresce, slide "out" encolhe) e pra trás (slide "out"
+	// cresce de novo, slide2 "in" encolhe) SEMPRE animado, nunca em corte seco.
 	var tl = new TimelineMax({ repeat: -1, repeatDelay: 8.0, yoyo: true });
 
 	tl.add(slide.transition(), 0);
 	tl.add(slide2.transition(), 0);
 
-	createTweenScrubber(tl);
+	// A cada perna do vaivém (onRepeat dispara toda vez que uma perna termina
+	// e a próxima, no sentido contrário, está prestes a começar), a malha que
+	// vai crescer nessa próxima perna ainda está com escala 0 (invisível).
+	// É o momento certo pra trocar a textura dela, sem nenhum "flash":
+	// perna ímpar -> quem vai crescer é "slide" (fase out)
+	// perna par   -> quem vai crescer é "slide2" (fase in)
+	var legCount = 0;
+	var nextIndex = 2; // images[0] e images[1] já foram usados na criação
 
-	window.addEventListener("keyup", function (e) {
-		if (e.keyCode === 80) {
-			tl.paused(!tl.paused());
-		}
+	tl.eventCallback("onRepeat", function () {
+		legCount++;
+		var growingSlide = (legCount % 2 === 1) ? slide : slide2;
+		var loader = (legCount % 2 === 1) ? l1 : l2;
+
+		growingSlide.setImage(loader.load(images[nextIndex]));
+		nextIndex = (nextIndex + 1) % images.length;
 	});
 }
 
@@ -67,12 +87,6 @@ function Slide(width, height, animationPhase) {
 	var aEndPosition = geometry.createAttribute("aEndPosition", 3);
 
 	var i, i2, i3, i4, v;
-
-	// var minDuration = 0.8;
-	// var maxDuration = 1.2;
-	// var maxDelayX = 0.9;
-	// var maxDelayY = 0.125;
-	// var stretch = 0.11;
 
 	var minDuration = 0.8;
 	var maxDuration = 2.2;
@@ -365,134 +379,7 @@ var utils = {
 
 		return dst;
 	},
-	randSign: function () {
-		return Math.random() > 0.5 ? 1 : -1;
-	},
 	ease: function (ease, t, b, c, d) {
 		return b + ease.getRatio(t / d) * c;
-	},
-	fibSpherePoint: (function () {
-		var vec = { x: 0, y: 0, z: 0 };
-		var G = Math.PI * (3 - Math.sqrt(5));
-
-		return function (i, n, radius) {
-			var step = 2.0 / n;
-			var r, phi;
-
-			vec.y = i * step - 1 + step * 0.5;
-			r = Math.sqrt(1 - vec.y * vec.y);
-			phi = i * G;
-			vec.x = Math.cos(phi) * r;
-			vec.z = Math.sin(phi) * r;
-
-			radius = radius || 1;
-
-			vec.x *= radius;
-			vec.y *= radius;
-			vec.z *= radius;
-
-			return vec;
-		};
-	})(),
-	spherePoint: (function () {
-		return function (u, v) {
-			u === undefined && (u = Math.random());
-			v === undefined && (v = Math.random());
-
-			var theta = 2 * Math.PI * u;
-			var phi = Math.acos(2 * v - 1);
-
-			var vec = {};
-			vec.x = Math.sin(phi) * Math.cos(theta);
-			vec.y = Math.sin(phi) * Math.sin(theta);
-			vec.z = Math.cos(phi);
-
-			return vec;
-		};
-	})()
+	}
 };
-
-function createTweenScrubber(tween, seekSpeed) {
-    seekSpeed = seekSpeed || 0.001;
-    
-    // Get the hero-bg element
-    var container = document.getElementById("threejs-container");
-	// var container = document.querySelector(".scroll-prompt");
-    // Local mouseDown variable
-    var mouseDown = false;
-
-    function stop() {
-        TweenMax.to(tween, 1, { timeScale: 0 });
-    }
-
-    function resume() {
-        TweenMax.to(tween, 1, { timeScale: 1 });
-    }
-
-    function seek(dx) {
-        var progress = tween.progress();
-        var p = THREE.Math.clamp(progress + dx * seekSpeed, 0, 1);
-        tween.progress(p);
-    }
-
-    var _cx = 0;
-
-    // Change cursor only for the container
-    container.style.cursor = "pointer";
-
-    // Attach event listeners to the container instead of window
-    container.addEventListener("mousedown", function (e) {
-        mouseDown = true;
-        container.style.cursor = "ew-resize";
-        _cx = e.clientX;
-        stop();
-        // Prevent default to avoid text selection
-        e.preventDefault();
-    });
-    
-    // These still need to be on window to handle mouse up/move outside container
-    window.addEventListener("mouseup", function (e) {
-        if (mouseDown) {
-            mouseDown = false;
-            container.style.cursor = "pointer";
-            resume();
-        }
-    });
-    
-    window.addEventListener("mousemove", function (e) {
-        if (mouseDown === true) {
-            var cx = e.clientX;
-            var dx = cx - _cx;
-            _cx = cx;
-            seek(dx);
-        }
-    });
-    
-    // Mobile events - attach to container
-    container.addEventListener("touchstart", function (e) {
-        mouseDown = true; // Also set mouseDown for touch events
-        _cx = e.touches[0].clientX;
-        stop();
-        e.preventDefault();
-    });
-    
-    // Keep these on window to handle touch end/move outside container
-    window.addEventListener("touchend", function (e) {
-        if (mouseDown) {
-            mouseDown = false;
-            resume();
-            e.preventDefault();
-        }
-    });
-    
-    window.addEventListener("touchmove", function (e) {
-        if (mouseDown) {
-            var cx = e.touches[0].clientX;
-            var dx = cx - _cx;
-            _cx = cx;
-            seek(dx);
-            e.preventDefault();
-        }
-    });
-}
-

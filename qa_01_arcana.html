@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcanaFutura QA Audit | QA Portfolio</title>
+
+    <style>
+        :root {
+            --color-background: #fdf8eb;
+            --color-accent: #fd231a;
+        }
+    </style>
+
+    <!-- Loader Styles (identical to main site) -->
+    <style>
+        #loader-wrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999; background-color: var(--color-background);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 1; transition: opacity 0.6s ease-in-out; pointer-events: auto;
+        }
+        #loader-background {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--color-accent); transform-origin: top;
+            transform: scaleY(1); transition: transform 1.8s cubic-bezier(0.65, 0.05, 0.36, 1);
+        }
+        .loader-logo {
+            position: absolute; z-index: 1; max-width: 50%; max-height: 50%;
+            height: auto; transition: opacity 0.5s ease-in-out;
+            user-select: none; -webkit-user-drag: none;
+        }
+        #loader-logo-bg { opacity: 1; filter: brightness(0) invert(96%) sepia(6%) saturate(382%) hue-rotate(359deg) brightness(108%) contrast(92%); }
+        #loader-logo-accent { opacity: 0; filter: brightness(0) saturate(100%) invert(25%) sepia(90%) saturate(6000%) hue-rotate(355deg) brightness(100%) contrast(102%); }
+        body.loading-done #loader-wrapper { opacity: 0; pointer-events: none; }
+        body:not(.loading-done) > *:not(#loader-wrapper) { visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in-out, visibility 0s 0.3s; }
+        body.loading-done > *:not(#loader-wrapper) { visibility: visible; opacity: 1; transition-delay: 0s; }
+    </style>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300..700&family=Sora:wght@100..800&display=swap" rel="stylesheet">
+
+    <!-- Main site styles -->
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- QA Page–specific overrides & additions -->
+    <style>
+        /* ── Hero: dark atmosphere without Three.js ── */
+        .hero {
+            background-color: #1a1814;
+            min-height: 38vh;
+        }
+        .qa-hero-eyebrow {
+            font-family: "Sora", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 1.2rem;
+        }
+
+        /* ── QA Content wrapper mirrors .about-us container rhythm ── */
+        .qa-section {
+            border-bottom: 1px solid var(--color-border);
+            position: relative; z-index: 1;
+        }
+        .qa-section .container {
+            padding: 4% 14% 5%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        @media (max-width: 900px) {
+            .qa-section .container { padding: 6% 7% 6%; }
+        }
+
+        /* ── Section header row ── */
+        .qa-section-head {
+            display: flex;
+            align-items: baseline;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1.5rem;
+        }
+        .qa-section-number {
+            font-family: "Signika Negative", sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            flex-shrink: 0;
+        }
+
+        /* ── Project Hero Section (Section 1) ── */
+        .qa-project-title {
+            font-family: "Signika Negative", sans-serif;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+        }
+        .qa-project-desc {
+            font-family: "Sora", sans-serif;
+            font-size: clamp(1rem, 1.8vw, 1.35rem);
+            font-weight: 300;
+            line-height: 1.55;
+            color: var(--color-text);
+            max-width: 72ch;
+            margin-bottom: 2.5rem;
+        }
+        .qa-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+        .qa-tech-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+            margin-right: 0.4rem;
+            flex-shrink: 0;
+        }
+        .qa-tech-tag {
+            font-family: "Sora", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            padding: 0.35em 0.9em;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            background: transparent;
+        }
+        .qa-ci-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .qa-ci-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 3px;
+            overflow: hidden;
+            border: none;
+            height: 20px;
+        }
+        .qa-ci-badge .badge-label {
+            background: #555;
+            color: #fff;
+            padding: 0 0.55em;
+            height: 100%;
+            display: flex; align-items: center;
+        }
+        .qa-ci-badge .badge-status {
+            background: #3fb950;
+            color: #fff;
+            padding: 0 0.55em;
+            height: 100%;
+            display: flex; align-items: center;
+        }
+        .qa-ci-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+        }
+
+        /* ── Architecture Diagram ── */
+        .qa-diagram-wrap {
+            margin: 2rem 0;
+        }
+        .qa-diagram-svg {
+            width: 100%;
+            max-width: 1200px;
+            display: block;
+            margin: 0 auto;
+        }
+        .qa-diagram-caption {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: var(--color-legend);
+            max-width: 60ch;
+            margin: 1.5rem auto 0;
+            text-align: center;
+            border-top: 1px solid var(--color-border);
+            padding-top: 1.2rem;
+        }
+        .qa-diagram-caption strong {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        /* ── Strategy paragraph ── */
+        .qa-strategy-body {
+            font-family: "Signika Negative", sans-serif;
+            font-size: clamp(1rem, 2vw, 1.7rem);
+            font-weight: 300;
+            line-height: 1.65;
+            color: var(--color-text);
+            max-width: 72ch;
+            margin-bottom: 2.5rem;
+        }
+        .qa-strategy-result {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-text);
+            border-left: 3px solid var(--color-accent);
+            padding-left: 1.2rem;
+        }
+
+        /* ── Bug Report Accordion (wraps existing .about-accordion CSS) ── */
+        .qa-bugs-intro {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--color-legend);
+            max-width: 56ch;
+            margin-bottom: 2.5rem;
+        }
+        /* Bug meta row inside accordion-content */
+        .bug-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .bug-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .bug-meta-key {
+            font-family: "Sora", sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+        }
+        .bug-meta-value {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+        .severity-critical { color: var(--color-accent); }
+        .severity-high { color: #d9770e; }
+        .severity-medium { color: #9a6c00; }
+
+        .bug-body p {
+            font-family: "Sora", sans-serif;
+            font-size: 0.95rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+        .bug-body p strong {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        .bug-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Code snippet ── */
+        .qa-code-block {
+            background: #1e1c18;
+            border-left: 3px solid var(--color-accent);
+            padding: 1.4rem 1.6rem;
+            overflow-x: auto;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .qa-code-block pre {
+            margin: 0;
+            font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: #e6e0cc;
+            white-space: pre;
+        }
+        .tok-kw  { color: #ff7a7a; }  /* keywords */
+        .tok-fn  { color: #79c0ff; }  /* function names */
+        .tok-st  { color: #a5d6a7; }  /* strings */
+        .tok-cm  { color: #6e7681; font-style: italic; }  /* comments */
+        .tok-dc  { color: #e6b44e; }  /* decorators */
+        .tok-nb  { color: #c9d1d9; }  /* built-ins / plain */
+
+        /* ── Automation two-col ── */
+        .qa-automation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2.5rem;
+        }
+        @media (max-width: 769px) {
+            .qa-automation-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        }
+        .qa-auto-col-head {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 0.6rem;
+        }
+        .qa-auto-col-body {
+            font-family: "Sora", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+        }
+        .qa-xfail-block {
+            margin-top: 2rem;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-accent);
+        }
+        .qa-xfail-head {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 0.6rem;
+        }
+        .qa-xfail-body {
+            font-family: "Sora", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+        }
+
+        /* ── Transparency note ── */
+        .qa-transparency {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-legend);
+            max-width: 66ch;
+            padding-top: 2rem;
+            border-top: 1px solid var(--color-border);
+            margin-top: 2rem;
+        }
+
+        /* ── Accordion content overrides for bug reports ── */
+        /* The accordion-content has heavy padding-left: 20% which works for about, 
+           but for bug reports we want a more even layout */
+        .bugs-accordion .accordion-content {
+            padding-left: 5%;
+            padding-right: 5%;
+            font-size: 1rem;
+        }
+        .bugs-accordion .accordion-item.active .accordion-content {
+            color: var(--color-text);
+        }
+        .bugs-accordion .accordion-header h2 {
+            font-size: clamp(1.4rem, 3vw, 2.5rem);
+        }
+
+
+        /* ── Action Links (Minimalist Alternative) ── */
+        .qa-action-container {
+            display: flex;
+            gap: 40px; /* Increased gap for a cleaner look */
+            margin: 3rem 0;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .qa-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-family: var(--font-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text);
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        /* The expanding underline effect from your Nav */
+        .qa-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--color-accent);
+            transition: width 0.4s ease, left 0.4s ease;
+            transform: translateX(-50%);
+        }
+
+        .qa-link:hover {
+            color: var(--color-accent);
+        }
+
+        .qa-link:hover::after {
+            width: 100%;
+        }
+
+        /* Icon Styling */
+        .qa-link-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor; /* Icon inherits text color and changes to red on hover */
+            transition: transform 0.3s ease;
+        }
+
+        .qa-link:hover .qa-link-icon {
+            transform: translateY(-2px); /* Subtle lift on hover */
+        }
+
+        /* Responsive adjustment */
+        @media (max-width: 480px) {
+            .qa-action-container {
+                gap: 20px;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loader -->
+    <div id="loader-wrapper">
+        <div id="loader-background"></div>
+        <img id="loader-logo-bg" class="loader-logo" src="/img/logo_v3.png" alt="Loading...">
+        <img id="loader-logo-accent" class="loader-logo" src="/img/logo_v3.png" alt="Loading...">
+    </div>
+
+    <div id="page-content-wrapper">
+
+        <!-- ─── Header ─── -->
+        <header class="header">
+            <div class="container">
+                <a href="index.html" class="logo">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/img/logo_mobile2.png">
+                        <source media="(max-width: 901px)" srcset="/img/logo_mobile.png">
+                        <img src="/img/logo_v3.png" alt="Selvas Logo">
+                    </picture>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="index.html#work">WORK</a><span class="separator"> </span></li>
+                        <li><a href="index.html#about">ABOUT</a><span class="separator"></span></li>
+                        <li><a href="index.html#contact">CONTACT</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- ─── Hero ─── -->
+        <section class="hero" id="hero">
+            <div class="container" id="work">
+                <h1 class="hero-text">
+                    <span class="light-text">quality is not</span>
+                    <span class="bold-text">an accident</span>
+                </h1>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 1 — PROJECT HEADER
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">01 — Project</span>
+                    </div>
+                </div>
+
+                <h2 class="qa-project-title">ArcanaFutura QA Audit</h2>
+
+                 <p class="qa-strategy-body">
+                    <strong>ArcanaFutura</strong> is an AI-powered Tarot reading web application built as my final project for Harvard University's CS50 course. It features a multi-step user flow, interactive DOM manipulation, and real-time streaming of LLM-generated readings.
+                </p>
+
+                <!-- EXISTING: QA Context -->
+                <p class="qa-strategy-body">
+                    This portfolio details the comprehensive security and infrastructure QA audit conducted on the application. The audit identified and remediated critical vulnerabilities in API quota protection, state management, and protocol boundaries, ultimately backed by an automated Pytest regression suite.
+                </p>
+
+                <!-- ── ACTION LINKS ── -->
+                <!-- ── ACTION LINKS ── -->
+                <div class="qa-action-container">
+                    <!-- Live App -->
+                    <a href="https://arcanafutura.onrender.com" target="_blank" rel="noopener noreferrer" class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/></svg>
+                        <span>View Live App</span>
+                    </a>
+
+                    <!-- GitHub -->
+                    <a href="https://github.com/akaselvas/cs50_arcanafutura" target="_blank" rel="noopener noreferrer" class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                        <span>GitHub Repository</span>
+                    </a>
+
+                    <!-- Spreadsheet -->
+                    <a href="https://docs.google.com/spreadsheets/d/1_YOUR_ID" target="_blank" rel="noopener noreferrer" class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,11V13H8V11H16M16,15V17H8V15H16Z"/></svg>
+                        <span>Full 340-Point Test Matrix</span>
+                    </a>
+                </div>
+
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">QA & Testing Tools:</span>
+                    <span class="qa-tech-tag">DevTools (Console Scripting)</span>
+                    <span class="qa-tech-tag">cURL</span>
+                    <span class="qa-tech-tag">RedisInsight</span>
+                    <span class="qa-tech-tag">Lighthouse</span>
+                    <span class="qa-tech-tag">BrowserStack</span>
+                    <span class="qa-tech-tag">Pytest</span>
+                    <span class="qa-tech-tag">Bandit (SAST)</span>
+                    <span class="qa-tech-tag">GitHub Actions (CI/CD)</span>
+                </div>
+                
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">Security & Infrastructure:</span>
+                    <span class="qa-tech-tag">Content Security Policy (CSP)</span>
+                    <span class="qa-tech-tag">CSRF / Flask-WTF</span>
+                    <span class="qa-tech-tag">Flask-Talisman</span>
+                    <span class="qa-tech-tag">Flask-Limiter</span>
+                    <span class="qa-tech-tag">Reverse Proxies (Render/Cloudflare)</span>
+                </div>
+
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">Core Architecture:</span>
+                    <span class="qa-tech-tag">Flask + Python</span>
+                    <span class="qa-tech-tag">Jinja2</span>
+                    <span class="qa-tech-tag">WebSockets (Socket.IO)</span>
+                    <span class="qa-tech-tag">Redis</span>
+                    <span class="qa-tech-tag">Google Gemini API</span>
+                    <span class="qa-tech-tag">Vanilla JS (DOM & sessionStorage)</span>
+                    <span class="qa-tech-tag">WCAG Accessibility (a11y)</span>
+                    <span class="qa-tech-tag">Harvard CS50 Final Project</span>
+                </div>
+
+                <div class="qa-ci-row">
+                    <a href="https://github.com/akaselvas/cs50_arcanafutura/actions/workflows/ci.yml" target="_blank" rel="noopener noreferrer">
+                        <img src="https://github.com/akaselvas/cs50_arcanafutura/actions/workflows/ci.yml/badge.svg?branch=main" alt="Python CI Pipeline Status">
+                    </a>
+                    <span class="qa-ci-label">Automated Pytest suite running on every commit</span>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 2 — ARCHITECTURE DIAGRAM
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">02 — System</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    <strong>Architectural Threat Map:</strong> Out of nearly 40 defects identified during the 340-point QA audit, 
+                    these five represent the most critical and structurally diverse vulnerabilities. They span across 
+                    five distinct architectural layers: two inside Flask's runtime (memory mutation, template injection),
+                    one at the proxy boundary (IP spoofing), and two on the WebSocket channel, one inbound (hijacking), one outbound (dead SID).
+                </p>
+
+                <div class="qa-diagram-wrap">
+                    <!-- Vulnerability Map SVG — 5 bugs, correctly placed -->
+                    <svg class="qa-diagram-svg" viewBox="0 0 760 510" xmlns="http://www.w3.org/2000/svg"
+                        role="img" aria-label="ArcanaFutura vulnerability map — five bugs across five architectural layers">
+                        <style>
+                            .d-node         { fill: #fdf8eb; stroke: #363636; stroke-width: 1.5; }
+                            .d-separator    { stroke: #363636; stroke-width: 0.75; stroke-dasharray: 3,2; }
+                            .d-node-title   { font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; fill: #2a2a2a; text-anchor: middle; }
+                            .d-node-sub     { font-family: 'Sora', sans-serif; font-size: 8.5px; font-weight: 300; fill: #4c4949; text-anchor: middle; }
+                            .d-node-section { font-family: 'Sora', sans-serif; font-size: 7.5px; font-weight: 700; fill: #6a6460; text-anchor: middle; letter-spacing: 0.09em; }
+                            .d-arrow        { stroke: #363636; stroke-width: 1.5; fill: none; marker-end: url(#ah-dark); }
+                            .d-ws-in        { stroke: #6b5e34; stroke-width: 1.5; fill: none; stroke-dasharray: 6,3; marker-end: url(#ah-ws); }
+                            .d-ws-out       { stroke: #6b5e34; stroke-width: 1; fill: none; stroke-dasharray: 3,3; marker-end: url(#ah-ws-rev); opacity: 0.65; }
+                            .d-conn-label   { font-family: 'Sora', sans-serif; font-size: 8px; font-weight: 400; fill: #6a6460; text-anchor: middle; }
+                            .d-attack       { fill: #fd231a; }
+                            .d-attack-ring  { fill: none; stroke: #fd231a; stroke-width: 1.5; opacity: 0.28; }
+                            .d-attack-num   { font-family: 'Sora', sans-serif; font-size: 7.5px; font-weight: 800; fill: #fff; text-anchor: middle; dominant-baseline: central; }
+                            .d-bug-tag      { font-family: 'Sora', sans-serif; font-size: 7.5px; font-weight: 700; fill: #fd231a; text-anchor: middle; letter-spacing: 0.06em; }
+                            .d-lg-key       { font-family: 'Sora', sans-serif; font-size: 8.5px; font-weight: 700; fill: #fd231a; }
+                            .d-lg-val       { font-family: 'Sora', sans-serif; font-size: 8.5px; font-weight: 400; fill: #4c4949; }
+                        </style>
+                        <defs>
+                            <marker id="ah-dark" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0,8 3,0 6" fill="#363636"/>
+                            </marker>
+                            <marker id="ah-ws" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0,8 3,0 6" fill="#6b5e34"/>
+                            </marker>
+                            <marker id="ah-ws-rev" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+                                <polygon points="8 0,0 3,8 6" fill="#6b5e34"/>
+                            </marker>
+                        </defs>
+
+                        <!-- ── NODES ── -->
+
+                        <!-- Browser -->
+                        <rect class="d-node" x="20" y="215" width="115" height="58" rx="2"/>
+                        <text class="d-node-title" x="77" y="241">Browser</text>
+                        <text class="d-node-sub" x="77" y="258">User Client</text>
+
+                        <!-- Render Proxy -->
+                        <rect class="d-node" x="188" y="215" width="128" height="58" rx="2"/>
+                        <text class="d-node-title" x="252" y="241">Render Proxy</text>
+                        <text class="d-node-sub" x="252" y="258">X-Forwarded-For</text>
+
+                        <!-- Flask App — two internal sections separated by dashed line -->
+                        <rect class="d-node" x="374" y="180" width="163" height="118" rx="2"/>
+                        <line class="d-separator" x1="376" y1="231" x2="535" y2="231"/>
+                        <!-- Top section: Global Memory -->
+                        <text class="d-node-section" x="455" y="200">GLOBAL MEMORY</text>
+                        <text class="d-node-sub" x="455" y="216">gevent · concurrent</text>
+                        <!-- Bottom section: Jinja2 -->
+                        <text class="d-node-section" x="455" y="251">JINJA2 RENDERER</text>
+                        <text class="d-node-sub" x="455" y="267">template context</text>
+                        <text class="d-node-title" x="455" y="287">Flask App</text>
+
+                        <!-- Redis -->
+                        <rect class="d-node" x="592" y="108" width="130" height="58" rx="2"/>
+                        <text class="d-node-title" x="657" y="134">Redis</text>
+                        <text class="d-node-sub" x="657" y="151">Session Store</text>
+
+                        <!-- Gemini -->
+                        <rect class="d-node" x="592" y="275" width="130" height="58" rx="2"/>
+                        <text class="d-node-title" x="657" y="301">Google Gemini</text>
+                        <text class="d-node-sub" x="657" y="318">LLM API</text>
+
+                        <!-- ── CONNECTIONS ── -->
+
+                        <!-- Browser → Proxy (HTTP) -->
+                        <line class="d-arrow" x1="135" y1="244" x2="186" y2="244"/>
+                        <text class="d-conn-label" x="160" y="236">HTTP</text>
+
+                        <!-- Proxy → Flask (HTTP) -->
+                        <line class="d-arrow" x1="316" y1="244" x2="372" y2="244"/>
+                        <text class="d-conn-label" x="344" y="236">HTTP</text>
+
+                        <!-- Flask → Redis -->
+                        <line class="d-arrow" x1="537" y1="207" x2="590" y2="143"/>
+
+                        <!-- Flask → Gemini -->
+                        <line class="d-arrow" x1="537" y1="271" x2="590" y2="300"/>
+
+                        <!-- WS inbound: Browser → Flask (messages going IN, solid-ish dashes) -->
+                        <path class="d-ws-in" d="M77,215 L77,127 L455,127 L455,180"/>
+
+                        <!-- WS outbound: Flask → Browser (socketio.emit response, fainter dashes) -->
+                        <path class="d-ws-out" d="M455,109 L77,109"/>
+
+                        <!-- WS channel labels -->
+                        <text class="d-conn-label" x="266" y="120" style="fill:#6b5e34;font-weight:600;">→  WS messages in  (Socket.IO)</text>
+                        <text class="d-conn-label" x="266" y="102" style="fill:#6b5e34;">←  socketio.emit() response</text>
+
+                        <!-- ── VULNERABILITY MARKERS ── -->
+
+                        <!-- BUG 1 — Global Deck Mutation -->
+                        <circle class="d-attack-ring" cx="393" cy="195" r="14"/>
+                        <circle class="d-attack" cx="393" cy="195" r="8"/>
+                        <text class="d-attack-num" x="393" y="195">1</text>
+                        <text class="d-bug-tag" x="393" y="177">GLOBAL MUT.</text>
+
+                        <!-- BUG 2 — X-Forwarded-For Rate Limit Bypass -->
+                        <circle class="d-attack-ring" cx="343" cy="244" r="14"/>
+                        <circle class="d-attack" cx="343" cy="244" r="8"/>
+                        <text class="d-attack-num" x="343" y="244">2</text>
+                        <text class="d-bug-tag" x="343" y="265">IP SPOOF</text>
+
+                        <!-- BUG 3 — Cross-Site WebSocket Hijacking -->
+                        <circle class="d-attack-ring" cx="163" cy="127" r="14"/>
+                        <circle class="d-attack" cx="163" cy="127" r="8"/>
+                        <text class="d-attack-num" x="163" y="127">3</text>
+                        <text class="d-bug-tag" x="163" y="145">WS HIJACK</text>
+
+                        <!-- BUG 4 — JS Template Injection -->
+                        <circle class="d-attack-ring" cx="522" cy="285" r="14"/>
+                        <circle class="d-attack" cx="522" cy="285" r="8"/>
+                        <text class="d-attack-num" x="522" y="285">4</text>
+                        <text class="d-bug-tag" x="522" y="308">JS INJECT</text>
+
+                        <!-- BUG 5 — Dead SID Infinite Loop -->
+                        <circle class="d-attack-ring" cx="418" cy="109" r="14"/>
+                        <circle class="d-attack" cx="418" cy="109" r="8"/>
+                        <text class="d-attack-num" x="418" y="109">5</text>
+                        <text class="d-bug-tag" x="418" y="91">DEAD SID</text>
+
+                        <!-- ── LEGEND ── -->
+                        <line x1="20" y1="372" x2="740" y2="372" stroke="#d8d0bc" stroke-width="0.75"/>
+
+                        <circle class="d-attack" cx="32" cy="392" r="7"/>
+                        <text class="d-attack-num" x="32" y="392">1</text>
+                        <text class="d-lg-key" x="44" y="396">Global Mutation</text>
+                        <text class="d-lg-val" x="125" y="396">TAROT_CARDS dict mutated in-place; concurrent gevent requests corrupt deck state</text>
+
+                        <circle class="d-attack" cx="32" cy="414" r="7"/>
+                        <text class="d-attack-num" x="32" y="414">2</text>
+                        <text class="d-lg-key" x="44" y="418">IP Spoofing</text>
+                        <text class="d-lg-val" x="105" y="418">ProxyFix x_for=2 trusts forged headers; attacker bypasses rate limit by rotating X-Forwarded-For IP</text>
+
+                        <circle class="d-attack" cx="32" cy="436" r="7"/>
+                        <text class="d-attack-num" x="32" y="436">3</text>
+                        <text class="d-lg-key" x="44" y="440">WS Hijacking</text>
+                        <text class="d-lg-val" x="115" y="440">No CSRF on send_message handler; any cross-origin page can drain Gemini quota</text>
+
+                        <circle class="d-attack" cx="32" cy="458" r="7"/>
+                        <text class="d-attack-num" x="32" y="458">4</text>
+                        <text class="d-lg-key" x="44" y="462">JS Template Injection</text>
+                        <text class="d-lg-val" x="150" y="462">{{ intencao }} raw in &lt;script&gt;; bleach doesn't help — vulnerability is in JS context, not HTML</text>
+
+                        <circle class="d-attack" cx="32" cy="480" r="7"/>
+                        <text class="d-attack-num" x="32" y="480">5</text>
+                        <text class="d-lg-key" x="44" y="484">Dead SID</text>
+                        <text class="d-lg-val" x="93" y="484">Background task emits to original socket ID after network drop; reconnected client hangs forever</text>
+                    </svg>
+
+                    <!-- <p class="qa-diagram-caption">
+                        <strong>Five vulnerabilities mapped to their actual layer:</strong>
+                        two inside Flask's runtime (memory mutation, template injection),
+                        one at the proxy boundary (IP spoofing), and two on the WebSocket
+                        channel — one inbound (hijacking), one outbound (dead SID).
+                    </p> -->
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 3 — TEST STRATEGY
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">03 — Strategy</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    I structured the QA process using a professional Scrum hierarchy: <strong>9 Epics</strong> 
+                    and <strong>54 User Stories</strong>, decomposed into a rigorous matrix of 
+                    <strong>over 340 executable subtasks</strong> tracked in Jira. I deliberately prioritized 
+                    manual testing for this phase because automation only verifies what it is scripted to check. 
+                    Manual exploratory testing brings the intuition and flexibility needed to uncover hidden bugs, 
+                    unpredictable edge cases, and usability issues that fall outside of rigid automated paths.
+                </p>
+                
+                <p class="qa-strategy-body">
+                    When transitioning to automation, I applied a strict triage filter based on a single 
+                    guiding question: <em>"If this breaks, will the app crash, get hacked, or cost me money?." </em> 
+                    Visual and animation validations remained manual, while critical security gates, API quota 
+                    protections and core routing logic were translated into a Pytest suite. This created a 
+                    permanent regression safety net, ensuring that applying complex fixes during the QA phase 
+                    never broke previously verified behavior.
+                </p>
+
+                <p class="qa-strategy-result">
+                    <strong>Result:</strong> A test plan of 340 subtasks in Jira, backed by over 100 automated tests integrated into GitHub Actions for continuous CI/CD validation.
+                </p>
+                
+            </div>
+        </section>
+
+         <!-- ══════════════════════════════════════════
+             SECTION 4 — BUGS
+        ═══════════════════════════════════════════ -->
+
+       <section class="qa-section about-us">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">04 — Findings</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    Selected from nearly 40 identified defects, these findings showcase the intersection of security auditing 
+                    and systems engineering. Each entry follows a rigorous documentation standard: defining the observable 
+                    failure, analyzing the real-world impact on API resources or user data, and verifying the fix through 
+                    targeted regression testing to ensure long-term stability.
+                </p>
+
+                <div class="about-accordion bugs-accordion">
+
+                    <!-- BUG 1 — Global Deck Mutation -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>1. Global Deck Mutation — <strong>Concurrency &amp; Data Corruption</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Severity</span>
+                                    <span class="bug-meta-value severity-critical">Critical — Silent data corruption</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Ref</span>
+                                    <span class="bug-meta-value">AF-62</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Method</span>
+                                    <span class="bug-meta-value">Source review of global state + concurrent request simulation</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> The shuffle function mutated
+                                    <code>TAROT_CARDS</code> dicts in-place — writing
+                                    <code>card["value"] = "invertido"</code> directly onto objects in the
+                                    global list. Under gevent's concurrent model, this list lives in process
+                                    memory for the entire server lifetime.
+                                </p>
+                                <p>
+                                    <strong>Real-world impact:</strong> Request A starts writing orientations to
+                                    the global list while Request B is halfway through reading them. The global
+                                    deck becomes a shared mutable scratchpad — the last concurrent write wins.
+                                    After the first request, the deck is never truly random again; every subsequent
+                                    reading inherits leftover orientation state from whoever hit the server last.
+                                    The app logs zero errors, returns HTTP 200, and appears completely healthy while
+                                    producing subtly incorrect results on every request under load.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong>
+                                    <code>deck_copy = [card.copy() for card in TAROT_CARDS]</code> — shuffle and
+                                    mutate the copy, never the global variable.
+                                </p>
+                                <span class="bug-label">Regression test — verify global immutability</span>
+                                <div class="qa-code-block">
+<pre><span class="tok-kw">def</span> <span class="tok-fn">test_global_deck_not_mutated</span>(client):
+    <span class="tok-cm">"""The global TAROT_CARDS list must remain pristine across requests."""</span>
+    <span class="tok-kw">with</span> client.session_transaction() <span class="tok-kw">as</span> sess:
+        sess[<span class="tok-st">"selected_cards"</span>] = <span class="tok-st">"3"</span>
+ 
+    client.get(<span class="tok-st">"/cartas"</span>)  <span class="tok-cm"># Triggers shuffle and orientation assignment</span>
+ 
+    <span class="tok-cm"># Hard assertion: no card in the global list should carry a value after the request</span>
+    <span class="tok-kw">from</span> app <span class="tok-kw">import</span> TAROT_CARDS
+    <span class="tok-kw">for</span> card <span class="tok-kw">in</span> TAROT_CARDS:
+        <span class="tok-kw">assert</span> <span class="tok-st">"value"</span> <span class="tok-nb">not in</span> card, (
+            <span class="tok-st">f"Global card '{card['name']}' was mutated! Concurrency risk detected."</span>
+        )</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /bug 1 -->
+
+                    <!-- BUG 2 — Rate Limiter Bypass via X-Forwarded-For -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>2. Rate Limiter Bypass — <strong>X-Forwarded-For IP Spoofing</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Severity</span>
+                                    <span class="bug-meta-value severity-critical">Critical — Infrastructure / DoS</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Ref</span>
+                                    <span class="bug-meta-value">AF-185</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Method</span>
+                                    <span class="bug-meta-value">Header inspection + ProxyFix misconfiguration analysis</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> Two separate failure modes existed depending on
+                                    the <code>ProxyFix</code> configuration. Without it, Flask-Limiter received
+                                    the load balancer IP for every user. With <code>x_for</code> set too high,
+                                    an attacker could prepend a fake IP to <code>X-Forwarded-For</code> and
+                                    bypass the rate limiter entirely.
+                                </p>
+                                <p>
+                                    <strong>Real-world impact:</strong> In the misconfigured state, all 400+ daily
+                                    users shared a single rate counter keyed to Render's load balancer IP. Any
+                                    one user exhausting the daily limit would trigger a 429 that blocked every
+                                    other user simultaneously. In the over-trusted state, a single attacker
+                                    header (<code>X-Forwarded-For: 127.0.0.1</code>) made the rate limiter read
+                                    localhost as the client — giving unlimited free AI readings and draining
+                                    Gemini API quota.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong> <code>ProxyFix(app.wsgi_app, x_for=1, x_proto=1,
+                                    x_host=1, x_prefix=1)</code> — <code>x_for=1</code> exactly matches Render's
+                                    single-hop architecture and closes both failure modes.
+                                </p>
+                                <span class="bug-label">Regression test — two failure modes, two functions</span>
+                                <div class="qa-code-block">
+<pre><span class="tok-kw">from</span> flask_limiter.util <span class="tok-kw">import</span> get_remote_address
+ 
+<span class="tok-kw">def</span> <span class="tok-fn">test_rate_limiter_keys_to_client_ip_not_load_balancer</span>(client):
+    <span class="tok-cm">"""Flask-Limiter must resolve the real client IP, not the proxy IP."""</span>
+    <span class="tok-kw">with</span> client.application.test_request_context(
+        headers={<span class="tok-st">"X-Forwarded-For"</span>: <span class="tok-st">"203.0.113.42, 10.0.0.1"</span>}
+    ):
+        resolved = get_remote_address()
+ 
+    <span class="tok-kw">assert</span> resolved == <span class="tok-st">"203.0.113.42"</span>, (
+        <span class="tok-st">f"Expected real client IP, got '{resolved}' — ProxyFix x_for misconfigured"</span>
+    )
+ 
+<span class="tok-kw">def</span> <span class="tok-fn">test_spoofed_forwarded_for_is_not_trusted</span>(client):
+    <span class="tok-cm">"""With x_for &gt; 1, an attacker header bypasses rate limiting."""</span>
+    <span class="tok-kw">with</span> client.application.test_request_context(
+        headers={<span class="tok-st">"X-Forwarded-For"</span>: <span class="tok-st">"127.0.0.1, 203.0.113.42, 10.0.0.1"</span>}
+    ):
+        resolved = get_remote_address()
+ 
+    <span class="tok-kw">assert</span> resolved != <span class="tok-st">"127.0.0.1"</span>, (
+        <span class="tok-st">"Spoofed localhost IP was trusted — x_for set too high"</span>
+    )</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /bug 2 -->
+
+                    <!-- BUG 3 — Cross-Site WebSocket Hijacking -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>3. Cross-Site <strong>WebSocket Hijacking</strong> (CSWSH)</h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Severity</span>
+                                    <span class="bug-meta-value severity-critical">Critical — API Security / Quota Theft</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Ref</span>
+                                    <span class="bug-meta-value">AF-307 · AF-308 · AF-310</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Method</span>
+                                    <span class="bug-meta-value">External domain Socket.IO injection</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> The <code>@socketio.on('send_message')</code>
+                                    handler called no <code>validate_csrf()</code>, and the server was configured
+                                    with <code>cors_allowed_origins="*"</code>. Flask-Limiter is blind to WebSocket
+                                    events entirely — HTTP rate limits do not apply to socket handlers.
+                                </p>
+                                <p>
+                                    <strong>Real-world impact:</strong> Any attacker page could get a logged-in user to visit it, establish a WebSocket connection using the victim's valid session cookie, and loop 200+ <code>send_message</code> events unimpeded. Every event triggers a Gemini API call at real cost. Testing confirmed that a 200-event loop completed without a single rejection.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong> <code>validate_csrf()</code> added to the handler
+                                    plus a custom Redis-backed sliding window limiter — 10 messages per 60 seconds
+                                    per session — because Flask-Limiter cannot be applied to socket events.
+                                </p>
+                                <span class="bug-label">Regression test — verify socket event authentication</span>
+                                <div class="qa-code-block">
+<pre><span class="tok-kw">def</span> <span class="tok-fn">test_send_message_rejected_without_valid_csrf</span>(socketio_client):
+    <span class="tok-cm">"""send_message must validate the CSRF token on every emit.
+    Without this, any cross-origin page can drain Gemini quota."""</span>
+    received = []
+    socketio_client.on(<span class="tok-st">"generation_error"</span>, <span class="tok-kw">lambda</span> data: received.append(data))
+ 
+    <span class="tok-cm"># Emit with a tampered CSRF token</span>
+    socketio_client.emit(<span class="tok-st">"send_message"</span>, {
+        <span class="tok-st">"message"</span>:      <span class="tok-st">"test"</span>,
+        <span class="tok-st">"tarot_reading"</span>: <span class="tok-st">""</span>,
+        <span class="tok-st">"csrf_token"</span>:    <span class="tok-st">"invalid-token-xyz"</span>,
+    })
+ 
+    <span class="tok-kw">assert</span> <span class="tok-nb">len</span>(received) &gt; <span class="tok-nb">0</span>, <span class="tok-st">"No error emitted — CSRF not validated on socket handler"</span>
+    <span class="tok-kw">assert</span> <span class="tok-st">"csrf"</span> <span class="tok-nb">in</span> received[<span class="tok-nb">0</span>].get(<span class="tok-st">"message"</span>, <span class="tok-st">""</span>).lower()</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /bug 3 -->
+
+                    <!-- BUG 4 — JS Context Breakout via Template Injection -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>4. JS Context Breakout — <strong>Template Injection Beats the Sanitizer</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Severity</span>
+                                    <span class="bug-meta-value severity-critical">Critical — Security depth / sanitizer blind spot</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Ref</span>
+                                    <span class="bug-meta-value">AF-29</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Method</span>
+                                    <span class="bug-meta-value">results.html source review + JS context payload testing</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> The intention field was interpolated raw into a
+                                    <code>socket.emit()</code> call inside a <code>&lt;script&gt;</code> block:
+                                    <code>intencao: "&#123;&#123; intencao &#125;&#125;"</code>. The server
+                                    ran <code>bleach.clean()</code> on input, which appeared to sanitize it.
+                                </p>
+                                <p>
+                                    <strong>Real-world impact:</strong> <code>bleach</code> sanitizes HTML
+                                    context — it strips <code>&lt;script&gt;</code> tags and encodes angle
+                                    brackets. It deliberately leaves quotes and backslashes untouched because
+                                    those are valid in text content. A user typing
+                                    <code>", csrf_token: "anything"</code> passes bleach cleanly, gets stored
+                                    in the session, and Jinja2 injects it raw into a JavaScript string — breaking
+                                    out and overwriting the CSRF token in the socket payload. With a more
+                                    crafted payload (<code>"}); maliciousFunction(); //</code>), arbitrary code
+                                    executes inside the CSP nonce boundary. The vulnerability is not in the
+                                    HTML output pipeline at all — no amount of HTML sanitization ever catches it.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong>
+                                    <code>intencao: &#123;&#123; intencao | tojson &#125;&#125;</code> —
+                                    <code>| tojson</code> JSON-encodes the string including all quotes,
+                                    closing the injection point entirely.
+                                </p>
+                                <span class="bug-label">Regression test — verify JS context escaping</span>
+                                <div class="qa-code-block">
+<pre><span class="tok-dc">@pytest.mark.parametrize</span>(<span class="tok-st">"payload"</span>, [
+    <span class="tok-st">'\", csrf_token: \"injected'</span>,
+    <span class="tok-st">'"}); maliciousFunction(); //'</span>,
+])
+<span class="tok-kw">def</span> <span class="tok-fn">test_intencao_is_json_encoded_in_script_context</span>(client, payload):
+    <span class="tok-cm">"""| tojson must be applied in results.html — bleach.clean() does NOT
+    protect against JS context breakout."""</span>
+    <span class="tok-kw">with</span> client.session_transaction() <span class="tok-kw">as</span> sess:
+        sess[<span class="tok-st">"intencao"</span>] = payload
+ 
+    html = client.get(<span class="tok-st">"/results"</span>).data.decode()
+ 
+    <span class="tok-cm"># Raw payload must never appear verbatim inside a script block</span>
+    <span class="tok-kw">assert</span> payload <span class="tok-nb">not in</span> html, (
+        <span class="tok-st">f"Raw payload in rendered HTML — | tojson not applied: {payload}"</span>
+    )
+    <span class="tok-cm"># JSON-encoded form must be present instead</span>
+    <span class="tok-kw">import</span> json
+    <span class="tok-kw">assert</span> json.dumps(payload) <span class="tok-nb">in</span> html</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /bug 4 -->
+ 
+                    <!-- BUG 5 — Dead SID Infinite Loading Loop -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>5. Dead SID — <strong>Infinite Loading Loop &amp; Silent Quota Burn</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Severity</span>
+                                    <span class="bug-meta-value severity-high">High — Silent money burn / async architecture</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Ref</span>
+                                    <span class="bug-meta-value">AF-116</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Method</span>
+                                    <span class="bug-meta-value">Network throttling / Wi-Fi disconnect simulation</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> In a Flask-SocketIO + Flask-Session stack there
+                                    are two completely different things called "session". The code targeted
+                                    <code>socketio.emit()</code> using <code>session.sid</code> as the room name
+                                    — but <code>session.sid</code> is the Redis key from the HTTP session, not
+                                    the socket's ephemeral per-connection room ID (<code>request.sid</code>).
+                                    The emit fired at a room that doesn't exist.
+                                </p>
+                                <p>
+                                    <strong>Real-world impact:</strong> The Gemini API call completed
+                                    successfully — consuming a real paid token. The result was emitted to a
+                                    dead room. The client's loading spinner ran for 120 seconds,
+                                    then the reconnection system retried up to 5 times, burning 5 more API
+                                    tokens per stuck user. Zero errors in the logs, zero 500s, no indication
+                                    anything was wrong. In a traffic spike this is silent, compounding quota
+                                    burn: every concurrent stuck user costs 5 Gemini calls and receives nothing.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong> Replace <code>session.sid</code> with
+                                    <code>request.sid</code> inside all <code>@socketio.on()</code> handlers —
+                                    <code>request.sid</code> is the actual socket connection room ID. To survive network drops, the reading is now cached in Redis using the persistent Flask Session ID, allowing reconnected clients to retrieve it instantly.
+                                </p>
+                                <span class="bug-label">Regression test — verify socket routing</span>
+                                <div class="qa-code-block">
+<pre><span class="tok-kw">def</span> <span class="tok-fn">test_generation_emit_targets_socket_room_not_redis_key</span>(socketio_client, mocker):
+    <span class="tok-cm">"""socketio.emit() must target request.sid (the socket room),
+    not session.sid (the Redis session key). Emitting to the Redis key
+    sends the response to a room that does not exist."""</span>
+    emitted_rooms = []
+    original_emit = socketio_client.application.extensions[<span class="tok-st">"socketio"</span>].emit
+ 
+    <span class="tok-kw">def</span> <span class="tok-fn">capture_emit</span>(*args, **kwargs):
+        emitted_rooms.append(kwargs.get(<span class="tok-st">"to"</span>) <span class="tok-kw">or</span> kwargs.get(<span class="tok-st">"room"</span>))
+        <span class="tok-kw">return</span> original_emit(*args, **kwargs)
+ 
+    mocker.patch.object(socketio_client.application.extensions[<span class="tok-st">"socketio"</span>],
+                        <span class="tok-st">"emit"</span>, side_effect=capture_emit)
+ 
+    socket_room_id = socketio_client.sid  <span class="tok-cm"># the real ephemeral room ID</span>
+    socketio_client.emit(<span class="tok-st">"start_generation"</span>, {<span class="tok-st">"intencao"</span>: <span class="tok-st">"test"</span>})
+ 
+    <span class="tok-kw">assert</span> socket_room_id <span class="tok-nb">in</span> emitted_rooms, (
+        <span class="tok-st">f"Emit targeted '{emitted_rooms}' — expected socket room '{socket_room_id}'. "</span>
+        <span class="tok-st">"session.sid (Redis key) was used instead of request.sid."</span>
+    )</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /bug 5 -->
+
+                </div><!-- /about-accordion -->
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════
+             SECTION X — TEST PLAN SCOPE (Accordion)
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">05 — Test Plan Scope</span>
+                    </div>
+                </div>
+ 
+                <p class="qa-strategy-body">
+                    The 340+ manual test cases were organized into 9 Epics and 54 User Stories, 
+                    mapped directly to the application's architecture. Each Epic targeted a distinct 
+                    layer of the stack — from HTTP form handling to Redis session storage, WebSocket 
+                    events, AI prompt integrity, and browser accessibility. A consistent triage filter 
+                    was applied to automation decisions throughout: <em>"If this breaks, will the app 
+                    crash, get hacked, or cost money?"</em>
+                </p>
+ 
+                <div class="about-accordion bugs-accordion">
+ 
+                    <!-- EPIC 1 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 1 — <strong>User Onboarding & Session Initialization</strong> <span class="story-count">7 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> Every interaction before the user reaches the card board — form submission, backend validation, session initialization, and CSRF protection.</p>
+                                <ul>
+                                    <li><strong>Happy Path & Validation:</strong> Testing all three valid card counts (1, 3, 5), the optional intention field, and verifying the backend correctly stores both values as strings in the Redis session — a type that the downstream card-limit logic depends on strictly.</li>
+                                    <li><strong>XSS Sanitization (8 subtasks):</strong> Systematically testing <code>bleach.clean()</code> against script tags, <code>img onerror</code> handlers, malformed HTML, link injection, and the JavaScript quote-breakout vector. One subtask confirmed a vulnerability where Jinja2's standard rendering (without the <code>| tojson</code> filter) allowed double quotes to break out of the inline JS string literal in results.html.</li>
+                                    <li><strong>CSRF Protection (9 subtasks):</strong> Verifying the full lifecycle — valid token baseline, missing token rejection, tampered token rejection, auto-reload on expiry, and the edge case where CSRF and session timers drift apart (CSRF at 1 min, session at 30 min). All tested on production.</li>
+                                    <li><strong>Intention Length Limit:</strong> Boundary testing at exactly 400 and 401 characters, plus documenting the sanitization-before-length-check edge case where special characters like <code>&</code> expand to <code>&amp;</code> after bleach processing, causing a 400-character input to exceed the limit.</li>
+                                    <li><strong>Type Coercion Safety:</strong> Verifying that <code>session['selected_cards']</code> is stored as a Python string (required for the <code>not in ['1','3','5']</code> validation), while Jinja2 injects it into the JS template as a bare integer (required for the <code>===</code> strict equality counter logic). A type mismatch in either direction silently breaks the entire card selection flow.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 2 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 2 — <strong>Card Selection & State Management</strong> <span class="story-count">6 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> The card board's JavaScript state machine — from initial render to selection locking, animation timing, DOM reparenting, and final data serialization.</p>
+                                <ul>
+                                    <li><strong>Shuffle & Orientation:</strong> Verifying that <code>random.sample</code> produces a different card order across sessions and that every card receives exactly one <code>data-value</code> attribute (<code>"normal"</code> or <code>"invertido"</code>). A key regression guard targets the <code>deck_copy = [card.copy() for card in TAROT_CARDS]</code> line — if removed, the global deck dictionary accumulates stale orientation values across concurrent users.</li>
+                                    <li><strong>Selection Counter Logic:</strong> The entire card limit enforcement depends on a single Jinja2 injection: <code>const selectedCardsCount = {{ selected_cards }};</code>. If this renders as <code>0</code> or <code>None</code>, the condition <code>clickedCards >= 0</code> is true on page load and no card can ever be clicked — with no visible error.</li>
+                                    <li><strong>Double-Click & Race Conditions:</strong> Testing the <code>card.dataset.processing = "true"</code> lock against rapid double-clicks during the 333ms mid-flip window, and verifying the <code>card.classList.contains('clicked')</code> guard prevents re-selection after animation completes.</li>
+                                    <li><strong>DOM Reparenting & Stage Transition:</strong> Verifying that <code>stage.appendChild(card)</code> physically moves the correct elements to <code>#selection-stage</code>, that the correct layout class (<code>stage-1</code>, <code>stage-3</code>, or <code>stage-5</code>) is applied, and that card orientations survive the transition unchanged.</li>
+                                    <li><strong>Data Serialization & Backend Resilience:</strong> Testing the dynamic form construction in <code>leituraButton.click</code>, including CSRF token inclusion and backend handling of malformed, structurally invalid, and empty JSON payloads — each a separate crash or cost vector.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 3 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 3 — <strong>AI Reading Generation (WebSocket Reliability)</strong> <span class="story-count">4 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> The AI generation pipeline — from WebSocket event to Gemini API call to rendered HTML — and its failure modes.</p>
+                                <ul>
+                                    <li><strong>Prompt Integrity:</strong> Using mocked <code>model.generate_content</code> calls to intercept and inspect the exact prompt string sent to Gemini, verifying that card names, orientations (<code>"invertido"</code>), and the user's intention all appear before the API is called. A missing card name means a wasted API call and a hallucinated reading.</li>
+                                    <li><strong>Markdown Pipeline (Confirmed Vulnerability):</strong> Testing <code>markdown_to_html()</code> revealed that <code>Markup()</code> marks output as Jinja2-safe but performs no sanitization. The Python <code>markdown</code> library passes raw HTML through unchanged. If Gemini returns a <code>&lt;script&gt;</code> tag (via prompt injection), it survives the pipeline and executes via <code>.innerHTML</code> in the browser. This was documented as a confirmed finding with a recommended fix: pipe through <code>bleach.clean()</code> before wrapping in <code>Markup()</code>.</li>
+                                    <li><strong>API Failure Handling:</strong> Verifying that <code>generate_tarot_reading()</code> propagates exceptions — rather than swallowing them — so the <code>background_generate</code> task can emit <code>generation_error</code> to the client. A function that catches and returns <code>None</code> on failure causes a <code>TypeError</code> in the browser when it tries to inject <code>None</code> into the DOM.</li>
+                                    <li><strong>Empty API Response:</strong> Confirming the explicit guard <code>if not response.text: raise ValueError()</code> catches safety-filter rejections, where the API returns a response object but with no text content.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 4 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 4 — <strong>Contextual Chat (Interactive AI)</strong> <span class="story-count">8 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> The chat interface as a separate runtime layer — its initialization, real-time feedback loop, security surface, and known architectural bugs.</p>
+                                <ul>
+                                    <li><strong>Dead Code Discovery:</strong> Code review identified that <code>initializeSocket()</code> — the function registering all chat UI event listeners — was defined but never called. Only <code>initSocket()</code> was wired to <code>DOMContentLoaded</code>. If deployed, the chat button, close button, scroll shadow, and <code>receive_message</code> handler would all be silently inert. Documented as a critical dead-code bug.</li>
+                                    <li><strong>WebSocket Payload Gaps (Confirmed Bugs):</strong> Two security bugs found via source inspection: <code>handle_message</code> used <code>data['message']</code> (direct key access) instead of <code>data.get('message', '')</code>, meaning a missing key raises an unhandled <code>KeyError</code> in the gevent greenlet; and no message length limit existed before <code>model.generate_content()</code>, allowing unlimited-length chat prompts to reach the AI.</li>
+                                    <li><strong>Loading Indicator Bug:</strong> <code>removeLoadingIndicator()</code> targeted <code>.chat-message:last-child</code>. If the user sent a second message before the first reply arrived, their second message bubble became <code>last-child</code>, and the first loading bubble was permanently orphaned in the chat history. Documented with a specific fix: use a unique class on the loading element and target it directly.</li>
+                                    <li><strong>API Failure in Chat:</strong> Testing the <code>background_chat</code> exception handler via mocked API failures to verify a <code>receive_message</code> event is emitted on failure. If the except block silently fails, the client's loading indicator spins indefinitely with no recovery path.</li>
+                                    <li><strong>Chat Rate Limiting:</strong> Verifying the in-memory sliding-window rate limiter (<code>is_rate_limited()</code>) exists and is called from <code>handle_message</code> — since Flask-Limiter's <code>@limiter.limit</code> decorator applies only to HTTP routes and cannot protect Socket.IO event handlers.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 5 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 5 — <strong>Security, Performance & Infrastructure</strong> <span class="story-count">6 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> The application's operational security layer — rate limiting, session hygiene, CSP enforcement, WebSocket authentication, and concurrent user isolation.</p>
+                                <ul>
+                                    <li><strong>IP-Based Rate Limiting:</strong> Verifying Flask-Limiter's <code>@limiter.limit</code> decorator on <code>/results</code> returns a <code>429</code> after the configured threshold. The development limit is <code>200/min</code>; production is <code>5/min</code>, dynamically selected via the <code>is_production</code> flag.</li>
+                                    <li><strong>Session Cookie Security:</strong> Asserting all three security flags in the <code>Set-Cookie</code> header: <code>HttpOnly</code> (blocks <code>document.cookie</code> access), <code>SameSite=Lax</code> (restricts cross-site POST), and <code>Secure</code> (HTTPS-only in production, HTTP-accessible in dev). The <code>Secure</code> flag is dynamically tied to <code>is_production</code> — hardcoding either value in either direction is a bug.</li>
+                                    <li><strong>WebSocket CSRF (Manual Attack Simulation):</strong> Manually emitting <code>start_generation</code> with a missing token, a forged token, and confirming the server emits <code>generation_error</code> in each case. Tested on production via browser console injection.</li>
+                                    <li><strong>Data Isolation (Concurrent Users):</strong> Running two independent test clients against <code>/process_form</code> simultaneously to verify session data (<code>intencao</code>, <code>selected_cards</code>) is keyed per-session-ID in Redis and cannot leak between users. Also testing the same-browser concurrent-tab race condition on <code>session['selected_cards']</code> writes.</li>
+                                    <li><strong>Session Expiry:</strong> Testing that the <code>SESSION_PERMANENT=False</code> setting produces a cookie with no <code>Expires</code> or <code>Max-Age</code> attribute — making it a true browser-session cookie that disappears on close, critical for shared-device privacy.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 6 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 6 — <strong>Responsive Design & Device Compatibility</strong> <span class="story-count">4 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> Mobile-specific rendering behavior, touch event semantics, and the tab-privacy mechanism introduced to handle shared-device use cases.</p>
+                                <ul>
+                                    <li><strong>Orientation Lock:</strong> Testing the <code>#rotate-message</code> overlay controlled by a CSS <code>@media (orientation: landscape)</code> rule, verifying it blocks interaction in landscape and disappears instantly on rotation.</li>
+                                    <li><strong>Mobile Keyboard Handling:</strong> Testing the <code>isTouchDevice()</code> detection via <code>window.matchMedia("(hover: none) and (pointer: coarse)")</code>, the <code>keyboard-active</code> class applied to <code>&lt;body&gt;</code> on input focus, and the <code>scrollIntoView</code> behavior that prevents the keyboard from covering the textarea. Also verifying the <code>localhost</code> exclusion so the behavior doesn't trigger during local development.</li>
+                                    <li><strong>Touch Event Compatibility:</strong> Verifying that standard <code>click</code> event listeners fire immediately on mobile tap without legacy 300ms delay (suppressed by the <code>width=device-width</code> viewport meta tag), and that CSS <code>:hover</code> states don't persist after tap-and-release ("sticky hover").</li>
+                                    <li><strong>Tab Privacy Guard:</strong> The <code>/clear_session</code> route, introduced to support the <code>sessionStorage</code>-based tab detection in <code>cartas.html</code> and <code>results.html</code>, was specifically security-audited: verifying it is <code>@csrf.exempt</code> (required because the JS fires before any token is available), accepts only <code>POST</code>, fully clears all session keys, and returns JSON — each a distinct crash or data-breach vector if broken.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 7 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 7 — <strong>Navigation, Session Guards & Error Handling</strong> <span class="story-count">7 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> Out-of-order navigation, infrastructure outages, and the application's behavior when users don't follow the intended linear flow.</p>
+                                <ul>
+                                    <li><strong>Session Guard Bug (Confirmed, Fixed):</strong> The original <code>/cartas</code> route used <code>int(session.get('selected_cards', 0))</code>, which defaulted to <code>0</code> on missing sessions. The page rendered with HTTP 200, but <code>selectedCardsCount = 0</code> made <code>clickedCards >= 0</code> immediately true — no card could be clicked, with no visible error. The fix (<code>if raw_val not in ['1','3','5']: redirect</code>) was regression-guarded with parametrized tests covering eight distinct invalid session values.</li>
+                                    <li><strong>Direct URL Navigation:</strong> Testing all three routes (<code>/</code>, <code>/cartas</code>, <code>/results</code>) with no session, partial sessions, and expired sessions to verify correct redirect chains without any route serving a <code>500</code> or a broken <code>200</code>.</li>
+                                    <li><strong>Bfcache & Browser Back:</strong> Documenting state desynchronization when navigating back from <code>/results</code> to <code>/cartas</code> via the browser's Back button — the DOM retains flipped cards but the JS <code>clickedCards</code> counter resets to 0, potentially allowing the user to exceed their original card limit.</li>
+                                    <li><strong>404 Handler:</strong> The custom <code>@app.errorhandler(404)</code> redirects all app routes to home (leaking nothing) but passes static file requests through as real <code>404</code>s. Both code paths were tested separately, and Talisman security header presence was verified on both response types.</li>
+                                    <li><strong>Redis Outage:</strong> Simulating Redis unavailability to verify the application does not leak stack traces or environment variables. Documenting that Flask-Limiter fails <em>open</em> by default during outages — allowing unrestricted traffic — which was logged as a risk item.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 8 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 8 — <strong>Security: Headers, CORS & Dev Leaks</strong> <span class="story-count">7 Stories</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> Attack surfaces not covered by Epic 5 — Talisman's default security headers, WebSocket CORS policy, CSP nonce configuration, and development tooling leaks.</p>
+                                <ul>
+                                    <li><strong>Talisman Security Headers:</strong> Verifying <code>X-Frame-Options: SAMEORIGIN</code> (clickjacking), <code>X-Content-Type-Options: nosniff</code> (MIME sniffing), and <code>Referrer-Policy</code> across all routes and both error-response code paths (the redirect-based <code>404</code> and the pass-through static-file <code>404</code>).</li>
+                                    <li><strong>CORS Wildcard (Confirmed Vulnerability):</strong> <code>cors_allowed_origins="*"</code> was hardcoded unconditionally in the original code, allowing any external website to establish a WebSocket connection. Combined with the missing CSRF on <code>send_message</code>, this created a confirmed Cross-Site WebSocket Hijacking (CSWSH) exploit path where an attacker's page could silently consume Gemini API quota for free. Documented with a specific fix: restrict to the production domain conditionally via <code>is_production</code>.</li>
+                                    <li><strong>CSP Nonce Misconfiguration (Confirmed Vulnerability):</strong> <code>g.nonce</code> was generated on every request and applied to script tags, but Talisman was not initialized with <code>content_security_policy_nonce_in=['script-src']</code>, and <code>'unsafe-inline'</code> remained in <code>script-src</code>. The nonce was cosmetic — the browser ignored it entirely because <code>unsafe-inline</code> unconditionally allows all inline scripts. Any XSS injection point would execute without restriction.</li>
+                                    <li><strong>send_message CSRF Gap (Confirmed Vulnerability):</strong> <code>handle_generation</code> called <code>validate_csrf()</code>; <code>handle_message</code> did not. An authenticated WebSocket connection could send unlimited chat prompts directly to the Gemini API without any token. Documented with exact code changes required for both backend and frontend.</li>
+                                    <li><strong>Development URL Leak in Production CSP:</strong> The <code>if not is_production:</code> guard wrapping localhost and LAN IP entries in the CSP dict was verified via source inspection — an inverted or missing condition would whitelist <code>http://localhost:3000</code> in the production CSP, creating a potential SSRF-based CSP bypass surface.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- EPIC 9 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Epic 9 — <strong>Reliability, Cross-Browser & Accessibility</strong> <span class="story-count">5 Stories · Manual Only</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Focus:</strong> Scenarios that require a live browser, real devices, or human judgment — WebSocket network resilience, cross-browser rendering parity, keyboard accessibility, screen reader compatibility, and performance benchmarking. Not automated; executed manually on production via BrowserStack and Chrome DevTools.</p>
+                                <ul>
+                                    <li><strong>WebSocket Resilience:</strong> Simulating hard network drops mid-generation using Chrome's Network Throttling panel. Found and confirmed a previous infinite-loading bug (since resolved via a reconnection architecture that emits cached readings on reconnect). One known architectural limitation was documented as Won't Fix: two tabs sharing the same browser session can receive cross-contaminated <code>generation_complete</code> events because SocketIO SIDs are per-connection, not per-session.</li>
+                                    <li><strong>Cross-Browser Compatibility:</strong> Full end-to-end flow testing on Firefox, Safari (macOS), iOS Safari (via BrowserStack), and Edge. Verified CSS <code>rotateX</code>/<code>rotateY</code> transforms without vendor prefixes, Web Animations API (<code>element.animate</code>) support, WebSocket <code>wss://</code> connection establishment, and <code>marked.js</code> rendering parity. All browsers passed without requiring polyfills.</li>
+                                    <li><strong>Keyboard Navigation & Accessibility Bugs Fixed:</strong> Full Tab-order audit across all three pages and the chat modal. Found that the Escape key did not dismiss the chat overlay — fixed by adding a global <code>keydown</code> listener. Found that keyboard focus could escape the chat modal — fixed by implementing a focus trap that intercepts <code>Tab</code> and <code>Shift+Tab</code> and cycles within the modal boundaries.</li>
+                                    <li><strong>Screen Reader & ARIA:</strong> All 22 card buttons were unlabeled (<code>&lt;button&gt;</code> with no text content), announced by screen readers as "button" with no context — fixed by adding dynamic <code>aria-label</code> attributes via Jinja2. The <code>#loading-message</code> lacked an ARIA live region, so screen readers received no notification when the AI finished generating — fixed by adding <code>role="status"</code> and <code>aria-live="polite"</code>. Color contrast measured at 3.31:1 for inactive card buttons, meeting the WCAG AA UI component standard.</li>
+                                    <li><strong>Performance Benchmarks:</strong> Established production SLA baselines: TTFB for <code>/</code> at 968ms (within 1000ms target), TTI for <code>/cartas</code> improved after a 46% asset size reduction (262KB PNG → 140KB WebP). AI reading generation averaged 5–9 seconds across 10 runs; chat responses averaged 3–5 seconds. Stress test with 5 concurrent users showed 63% average latency increase vs. baseline — documented as an acceptable degradation for the current single-instance deployment.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div><!-- /scope-accordion -->
+            </div>
+        </section>
+ 
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 5 — AUTOMATION APPROACH
+             + Transparency Note (Section 6 folded in)
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">05 — Automation</span>
+                    </div>
+                </div>
+
+                <div class="qa-automation-grid">
+                    <div>
+                        <p class="qa-auto-col-head">What Pytest automated</p>
+                        <p class="qa-auto-col-body">
+                            Backend route behavior, session state integrity across requests,
+                            input sanitization reaching the AI prompt, CSRF token enforcement
+                            on all mutation endpoints, and WebSocket handler security via the
+                            Flask-SocketIO test client. Every test hits the actual application
+                            code—no mocks were used for the security assertions.
+                        </p>
+                    </div>
+                    <div>
+                        <p class="qa-auto-col-head">What was explicitly not automated</p>
+                        <p class="qa-auto-col-body">
+                            CSS transitions, animation timing, mobile viewport breakpoints,
+                            and orientation-based layout changes. These require a browser
+                            rendering engine and belong in Playwright or Cypress, not a unit
+                            test runner. Documenting this boundary is part of the strategy—pretending 
+                            those cases don't exist would be a worse signal than the gap itself.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="qa-xfail-block">
+                    <p class="qa-xfail-head">The xfail pattern (Test-Driven Bug Fixing)</p>
+                    <p class="qa-xfail-body">
+                        Two known vulnerabilities—a <code>KeyError</code> crash in the WebSocket
+                        handler when a session key is missing, and an unbounded chat input with no
+                        API cost guard—were written as <code>@pytest.mark.xfail</code> tests before
+                        the fix was applied. This documented each vulnerability with a reproducible
+                        case that automatically converted to a passing test when the code was fixed.
+                        A test that starts red and goes green on the fix is a much stronger signal
+                        than a test written after the fact.
+                    </p>
+                </div>
+
+                <!-- Transparency note (Section 6) -->
+                <p class="qa-transparency">
+                    <strong>Transparency Note:</strong> The automated test code was written in collaboration 
+                    with AI pair-programming tools. I designed the test strategy, identified the edge cases 
+                    through manual exploratory testing, and reviewed all generated code against the application 
+                    source. Utilizing AI assistance for test generation is a standard multiplier in modern 
+                    professional QA workflows.
+                </p>
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════
+             SECTION 7 — ABOUT ME
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">07 — The Engineer</span>
+                    </div>
+                </div>
+
+                <h2 class="qa-project-title" style="font-size: 2rem;">From Design to Quality Assurance</h2>
+
+                <p class="qa-strategy-body">
+                    My background is in design and visual communication, which taught me how to obsess over the user experience and pixel-perfect details. However, I realized that a beautiful UI means nothing if the underlying architecture is fragile, insecure, or prone to race conditions.
+                </p>
+                <p class="qa-strategy-body">
+                    I transitioned into Software Quality Assurance and Engineering because I love breaking systems down to understand how they truly work. Completing Harvard's CS50 gave me the computer science foundation to look past the DOM and audit the network layer, the database, and the server memory. I bring a designer's empathy for the user, combined with an SDET's paranoia for edge cases and security vulnerabilities.
+                </p>
+            </div>
+        </section>
+
+
+        <!-- ─── Footer ─── -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-copyright">
+                        <div class="footer-text-line">
+                            <span class="text">QA portfolio of <span class="highlighted">Fabio Alves</span></span>
+                        </div>
+                        <div class="footer-text-line">
+                            <span class="text">built to the same standard as <span class="highlighted">the tests</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- /#page-content-wrapper -->
+
+
+    <!-- ═══ Minimal module init (no isotope / filter menu needed) ═══ -->
+    <script type="module">
+        import HeaderScroll from '/header-scroll.js';
+        import Accordion    from '/accordion.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            HeaderScroll.init();
+            Accordion.init();
+        });
+    </script>
+
+    <!-- Loader control (identical to main site) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loaderWrapper    = document.getElementById('loader-wrapper');
+            const loaderBackground = document.getElementById('loader-background');
+            const loaderLogoBg     = document.getElementById('loader-logo-bg');
+            const loaderLogoAccent = document.getElementById('loader-logo-accent');
+            const body = document.body;
+
+            if (!loaderWrapper) { body.classList.add('loading-done'); return; }
+
+            requestAnimationFrame(() => { loaderBackground.style.transform = 'scaleY(0)'; });
+
+            setTimeout(() => {
+                loaderLogoBg.style.opacity = '0';
+                loaderLogoAccent.style.opacity = '1';
+            }, 150);
+
+            setTimeout(() => {
+                loaderLogoAccent.style.opacity = '0';
+            }, 1500);
+
+            setTimeout(() => {
+                body.classList.add('loading-done');
+                setTimeout(() => loaderWrapper && loaderWrapper.remove(), 600);
+            }, 1900);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playwright E2E Automation Suite | QA Portfolio</title>
+
+    <style>
+        :root {
+            --color-background: #fdf8eb;
+            --color-accent: #fd231a;
+        }
+    </style>
+
+    <!-- Loader Styles (identical to main site) -->
+    <style>
+        #loader-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background-color: var(--color-background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 1;
+            transition: opacity 0.6s ease-in-out;
+            pointer-events: auto;
+        }
+
+        #loader-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-accent);
+            transform-origin: top;
+            transform: scaleY(1);
+            transition: transform 1.8s cubic-bezier(0.65, 0.05, 0.36, 1);
+        }
+
+        .loader-logo {
+            position: absolute;
+            z-index: 1;
+            max-width: 50%;
+            max-height: 50%;
+            height: auto;
+            transition: opacity 0.5s ease-in-out;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        #loader-logo-bg {
+            opacity: 1;
+            filter: brightness(0) invert(96%) sepia(6%) saturate(382%) hue-rotate(359deg) brightness(108%) contrast(92%);
+        }
+
+        #loader-logo-accent {
+            opacity: 0;
+            filter: brightness(0) saturate(100%) invert(25%) sepia(90%) saturate(6000%) hue-rotate(355deg) brightness(100%) contrast(102%);
+        }
+
+        body.loading-done #loader-wrapper {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        body:not(.loading-done)>*:not(#loader-wrapper) {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
+        }
+
+        body.loading-done>*:not(#loader-wrapper) {
+            visibility: visible;
+            opacity: 1;
+            transition-delay: 0s;
+        }
+    </style>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300..700&family=Sora:wght@100..800&display=swap"
+        rel="stylesheet">
+
+    <!-- Main site styles -->
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- Page-specific styles -->
+    <style>
+        /* ── Hero ── */
+        .hero {
+            background-color: #1a1814;
+            min-height: 38vh;
+        }
+
+        /* ── Section wrappers ── */
+        .qa-section {
+            border-bottom: 1px solid var(--color-border);
+            position: relative;
+            z-index: 1;
+        }
+
+        .qa-section .container {
+            padding: 4% 14% 5%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .qa-section .container {
+                padding: 6% 7% 6%;
+            }
+        }
+
+        /* ── Section header row ── */
+        .qa-section-head {
+            display: flex;
+            align-items: baseline;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 1.5rem;
+        }
+
+        /* ── Text styles ── */
+        .qa-project-title {
+            font-family: "Signika Negative", sans-serif;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 700;
+            color: var(--color-text);
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+        }
+
+        .qa-strategy-body {
+            font-family: "Signika Negative", sans-serif;
+            font-size: clamp(1rem, 2vw, 1.7rem);
+            font-weight: 300;
+            line-height: 1.65;
+            color: var(--color-text);
+            max-width: 72ch;
+            margin-bottom: 2.5rem;
+        }
+
+        .qa-strategy-body strong {
+            font-weight: 600;
+        }
+
+        .qa-strategy-result {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-text);
+            border-left: 3px solid var(--color-accent);
+            padding-left: 1.2rem;
+            margin-top: 2rem;
+        }
+
+        /* ── Tech stack tags ── */
+        .qa-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .qa-tech-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+            margin-right: 0.4rem;
+            flex-shrink: 0;
+        }
+
+        .qa-tech-tag {
+            font-family: "Sora", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            padding: 0.35em 0.9em;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            background: transparent;
+        }
+
+        .qa-ci-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .qa-ci-badge {
+            display: inline-flex;
+            align-items: center;
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            border-radius: 3px;
+            overflow: hidden;
+            height: 20px;
+        }
+
+        .qa-ci-badge .badge-label {
+            background: #555;
+            color: #fff;
+            padding: 0 0.55em;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .qa-ci-badge .badge-status {
+            background: #3fb950;
+            color: #fff;
+            padding: 0 0.55em;
+            height: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .qa-ci-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+        }
+
+        /* ── Action links ── */
+        .qa-action-container {
+            display: flex;
+            gap: 40px;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .qa-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-family: var(--font-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text);
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .qa-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: 0;
+            left: 50%;
+            background-color: var(--color-accent);
+            transition: width 0.4s ease, left 0.4s ease;
+            transform: translateX(-50%);
+        }
+
+        .qa-link:hover {
+            color: var(--color-accent);
+        }
+
+        .qa-link:hover::after {
+            width: 100%;
+        }
+
+        .qa-link-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            transition: transform 0.3s ease;
+        }
+
+        .qa-link:hover .qa-link-icon {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .qa-action-container {
+                gap: 20px;
+                flex-direction: column;
+            }
+        }
+
+        /* ── Metrics grid ── */
+        .qa-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            border: 1px solid var(--color-border);
+            margin: 2.5rem 0;
+        }
+
+        @media (max-width: 769px) {
+            .qa-metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .qa-metric-cell {
+            padding: 1.8rem 1.6rem;
+            border-right: 1px solid var(--color-border);
+        }
+
+        .qa-metric-cell:last-child {
+            border-right: none;
+        }
+
+        @media (max-width: 769px) {
+            .qa-metric-cell:nth-child(2) {
+                border-right: none;
+            }
+
+            .qa-metric-cell:nth-child(3) {
+                border-top: 1px solid var(--color-border);
+            }
+
+            .qa-metric-cell:nth-child(4) {
+                border-top: 1px solid var(--color-border);
+                border-right: none;
+            }
+        }
+
+        .qa-metric-number {
+            font-family: "Signika Negative", sans-serif;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            font-weight: 700;
+            color: var(--color-accent);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .qa-metric-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+            line-height: 1.5;
+        }
+
+        /* ── Diagram wrapper ── */
+        .qa-diagram-wrap {
+            margin: 2.5rem 0;
+        }
+
+        .qa-diagram-svg {
+            width: 100%;
+            max-width: 1100px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* ── Code block ── */
+        .qa-code-block {
+            background: #1e1c18;
+            border-left: 3px solid var(--color-accent);
+            padding: 1.4rem 1.6rem;
+            overflow-x: auto;
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .qa-code-block pre {
+            margin: 0;
+            font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+            font-size: 0.78rem;
+            line-height: 1.7;
+            color: #e6e0cc;
+            white-space: pre;
+        }
+
+        .tok-kw {
+            color: #ff7a7a;
+        }
+
+        .tok-fn {
+            color: #79c0ff;
+        }
+
+        .tok-st {
+            color: #a5d6a7;
+        }
+
+        .tok-cm {
+            color: #6e7681;
+            font-style: italic;
+        }
+
+        .tok-dc {
+            color: #e6b44e;
+        }
+
+        .tok-nb {
+            color: #c9d1d9;
+        }
+
+        /* ── Accordion overrides ── */
+        .bugs-accordion .accordion-content {
+            padding-left: 5%;
+            padding-right: 5%;
+            font-size: 1rem;
+        }
+
+        .bugs-accordion .accordion-item.active .accordion-content {
+            color: var(--color-text);
+        }
+
+        .bugs-accordion .accordion-header h2 {
+            font-size: clamp(1.4rem, 3vw, 2.5rem);
+        }
+
+        .bug-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .bug-meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .bug-meta-key {
+            font-family: "Sora", sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+        }
+
+        .bug-meta-value {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        .severity-critical {
+            color: var(--color-accent);
+        }
+
+        .severity-high {
+            color: #d9770e;
+        }
+
+        .severity-pass {
+            color: #2a7a45;
+        }
+
+        .bug-body p {
+            font-family: "Sora", sans-serif;
+            font-size: 0.95rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+
+        .bug-body p strong {
+            font-weight: 600;
+        }
+
+        .bug-label {
+            font-family: "Sora", sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .finding-source-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-border);
+            font-family: "Sora", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--color-legend);
+            text-decoration: none;
+            transition: color 0.25s ease;
+        }
+        .finding-source-link:hover { color: var(--color-accent); }
+        .finding-source-link svg {
+            width: 14px; height: 14px; fill: currentColor;
+            flex-shrink: 0;
+        }
+        .finding-source-link code {
+            color: var(--color-text);
+            font-weight: 500;
+        }
+
+        /* ── Callout box ── */
+        .qa-callout {
+            margin: 2rem 0;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid var(--color-border);
+            border-left: 4px solid var(--color-accent);
+        }
+
+        .qa-callout-head {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 0.6rem;
+        }
+
+        .qa-callout-body {
+            font-family: "Sora", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+        }
+
+        .qa-callout-body strong {
+            font-weight: 600;
+        }
+
+        /* ── Two-col grid ── */
+        .qa-two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 769px) {
+            .qa-two-col {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .qa-col-head {
+            font-family: "Sora", sans-serif;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 0.8rem;
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 0.6rem;
+        }
+
+        .qa-col-body {
+            font-family: "Sora", sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-text);
+        }
+
+        /* ── Pipeline steps (horizontal strip) ── */
+        .qa-pipeline-row {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            margin: 2.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .qa-pipeline-step {
+            flex: 1;
+            min-width: 140px;
+            border: 1px solid var(--color-border);
+            border-right: none;
+            padding: 1.4rem 1.2rem;
+        }
+
+        .qa-pipeline-step:last-child {
+            border-right: 1px solid var(--color-border);
+        }
+
+        .qa-pipeline-step-num {
+            font-family: "Sora", sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--color-accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .qa-pipeline-step-title {
+            font-family: "Signika Negative", sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 0.4rem;
+        }
+
+        .qa-pipeline-step-body {
+            font-family: "Sora", sans-serif;
+            font-size: 0.75rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: var(--color-legend);
+        }
+
+        @media (max-width: 769px) {
+            .qa-pipeline-step {
+                border-right: 1px solid var(--color-border);
+                border-bottom: none;
+                min-width: 100%;
+            }
+
+            .qa-pipeline-step:last-child {
+                border-bottom: 1px solid var(--color-border);
+            }
+        }
+
+        /* ── Transparency note ── */
+        .qa-transparency {
+            font-family: "Sora", sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
+            line-height: 1.75;
+            color: var(--color-legend);
+            max-width: 66ch;
+            padding-top: 2rem;
+            border-top: 1px solid var(--color-border);
+            margin-top: 2rem;
+        }
+
+        /* ── Agent-style findings table (reused for flakiness diagnosis) ── */
+        .qa-findings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-family: "Sora", sans-serif;
+        }
+
+        .qa-findings-table th {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+            text-align: left;
+        }
+
+        .qa-findings-table td {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--color-text);
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--color-border);
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        .qa-findings-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .qa-findings-table td:first-child {
+            font-weight: 600;
+        }
+
+        .finding-critical {
+            color: var(--color-accent);
+            font-weight: 700;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .finding-medium {
+            color: #a85a00;
+            font-weight: 700;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .finding-pass {
+            color: #2a7a45;
+            font-weight: 700;
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ── Data pipeline / state trace ── */
+        .qa-pipeline-trace {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0;
+            margin: 1.6rem 0;
+            font-family: "Sora", sans-serif;
+        }
+
+        .qa-trace-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.9rem 1.2rem;
+            border: 1px solid var(--color-border);
+            background: transparent;
+            min-width: 100px;
+        }
+
+        .qa-trace-node--fail {
+            border-color: var(--color-accent);
+            background: rgba(253, 35, 26, 0.04);
+        }
+
+        .qa-trace-num {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-accent);
+            line-height: 1.3;
+            margin-bottom: 0.25rem;
+            text-align: center;
+        }
+
+        .qa-trace-num--ok {
+            color: var(--color-text);
+        }
+
+        .qa-trace-label {
+            font-size: 0.62rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-legend);
+            text-align: center;
+        }
+
+        .qa-trace-arrow {
+            font-size: 0.9rem;
+            color: var(--color-legend);
+            padding: 0 0.3rem;
+            align-self: center;
+        }
+
+        .qa-trace-arrow--red {
+            color: var(--color-accent);
+        }
+
+        @media (max-width: 700px) {
+            .qa-pipeline-trace {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .qa-trace-arrow {
+                transform: rotate(90deg);
+                align-self: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loader -->
+    <div id="loader-wrapper">
+        <div id="loader-background"></div>
+        <img id="loader-logo-bg" class="loader-logo" src="/img/logo_v3.png" alt="Loading...">
+        <img id="loader-logo-accent" class="loader-logo" src="/img/logo_v3.png" alt="Loading...">
+    </div>
+
+    <div id="page-content-wrapper">
+
+        <!-- ─── Header ─── -->
+        <header class="header">
+            <div class="container">
+                <a href="index.html" class="logo">
+                    <picture>
+                        <source media="(max-width: 480px)" srcset="/img/logo_mobile2.png">
+                        <source media="(max-width: 901px)" srcset="/img/logo_mobile.png">
+                        <img src="/img/logo_v3.png" alt="Selvas Logo">
+                    </picture>
+                </a>
+                <nav class="main-nav">
+                    <ul>
+                        <li><a href="index.html#work">WORK</a><span class="separator"> </span></li>
+                        <li><a href="index.html#about">ABOUT</a><span class="separator"></span></li>
+                        <li><a href="index.html#contact">CONTACT</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- ─── Hero ─── -->
+        <section class="hero" id="hero">
+            <div class="container" id="work">
+                <h1 class="hero-text">
+                    <span class="light-text">flaky is not</span>
+                    <span class="bold-text">a diagnosis</span>
+                </h1>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 1 — PROJECT HEADER
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">01 — Project</span>
+                    </div>
+                </div>
+
+                <h2 class="qa-project-title">Playwright E2E Automation Suite</h2>
+
+                <p class="qa-strategy-body">
+                    A <strong>24-file, 161-test</strong> end-to-end regression suite written in <strong>Playwright +
+                        TypeScript</strong> against <strong>Practice Software Testing (Toolshop)</strong> — an
+                    open-source Angular/Laravel/MariaDB e-commerce app purpose-built for QA practice. The scope covers
+                    the full customer journey (catalog, cart, checkout, payment), account security (registration,
+                    TOTP/2FA, password recovery, account locking), a conversational chat widget, geolocation and
+                    combination discounts, six-language i18n, and a full admin back office — closed with a self-hosted
+                    CI/CD pipeline in GitHub Actions.
+                </p>
+
+                <p class="qa-strategy-body">
+                    This portfolio documents not just the final suite, but the actual debugging process behind it: the
+                    locator decisions that broke on translation, the strict-mode violations that each hid a different
+                    characteristic of the app, and the CI/CD pivot from testing a public site to containerizing the
+                    application itself inside the runner.
+                </p>
+
+                <div class="qa-action-container">
+                    <a href="https://github.com/akaselvas/toolshop-automation" target="_blank" rel="noopener noreferrer"
+                        class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z" />
+                        </svg>
+                        <span>GitHub Repository</span>
+                    </a>
+                    <a href="https://practicesoftwaretesting.com" target="_blank" rel="noopener noreferrer"
+                        class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z" />
+                        </svg>
+                        <span>View Target App (SUT)</span>
+                    </a>
+                    <a href="https://testsmith-io.github.io/practice-software-testing/#/user-stories/v5" target="_blank"
+                        rel="noopener noreferrer" class="qa-link">
+                        <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M9,2A7,7 0 0,1 16,9C16,11.38 14.81,13.47 13,14.74V17A1,1 0 0,1 12,18H8A1,1 0 0,1 7,17V14.74C5.19,13.47 4,11.38 4,9A7,7 0 0,1 9,2M9,4A5,5 0 0,0 4,9C4,10.93 5,12.63 6.5,13.58L7,13.9V16H9V13.9L9.5,13.58C11,12.63 12,10.93 12,9A5,5 0 0,0 9,4M8,20H16V22H8V20Z" />
+                        </svg>
+                        <span>Agile User Sprint</span>
+                    </a>
+                </div>
+
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">Testing Framework:</span>
+                    <span class="qa-tech-tag">Playwright</span>
+                    <span class="qa-tech-tag">TypeScript</span>
+                    <span class="qa-tech-tag">otpauth (TOTP/2FA)</span>
+                    <span class="qa-tech-tag">page.request (API setup)</span>
+                    <span class="qa-tech-tag">page.route (network mocking)</span>
+                </div>
+
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">CI/CD & Infrastructure:</span>
+                    <span class="qa-tech-tag">GitHub Actions</span>
+                    <span class="qa-tech-tag">Docker Compose</span>
+                    <span class="qa-tech-tag">Self-hosted stack in-runner</span>
+                    <span class="qa-tech-tag">HTML report artifacts</span>
+                </div>
+
+                <div class="qa-tech-stack">
+                    <span class="qa-tech-label">Target Application (SUT):</span>
+                    <span class="qa-tech-tag">Practice Software Testing (Toolshop)</span>
+                    <span class="qa-tech-tag">Angular</span>
+                    <span class="qa-tech-tag">Laravel</span>
+                    <span class="qa-tech-tag">MariaDB</span>
+                </div>
+
+                <div class="qa-ci-row">
+                    <div class="qa-ci-badge">
+                        <a href="https://github.com/akaselvas/toolshop-automation/actions/workflows/playwright.yml"
+                            target="_blank" rel="noopener noreferrer">
+                            <img src="https://github.com/akaselvas/toolshop-automation/actions/workflows/playwright.yml/badge.svg?branch=main"
+                                alt="Playwright CI Pipeline Status">
+                        </a>
+
+                    </div>
+                    <span class="qa-ci-label">24 spec files · 161 tests · Chromium · running against a self-hosted
+                        Docker Compose stack</span>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 2 — SYSTEM / CI ARCHITECTURE
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">02 — System</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    <strong>The CI pipeline didn't start where it ended up.</strong> The first working version simply
+                    pointed Playwright at the public production site — and passed, mostly. A meaningful chunk of tests
+                    (60+, spanning invoicing, login, and i18n) failed intermittently, with no logical connection to the
+                    test code: elements that should exist simply weren't in the DOM. The fix wasn't a longer timeout. It
+                    was removing the external dependency entirely.
+                </p>
+
+                <div class="qa-diagram-wrap">
+                    <svg class="qa-diagram-svg" viewBox="0 0 860 400" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Two CI/CD attempts: public site blocked by Cloudflare, versus a self-hosted Docker Compose stack inside the GitHub Actions runner">
+                        <style>
+                            .d-node {
+                                fill: #fdf8eb;
+                                stroke: #363636;
+                                stroke-width: 1.4;
+                            }
+
+                            .d-node-dim {
+                                fill: #f2ede0;
+                                stroke: #9a9189;
+                                stroke-width: 1.2;
+                                stroke-dasharray: 4, 3;
+                            }
+
+                            .d-node-ok {
+                                fill: rgba(47, 160, 88, 0.05);
+                                stroke: #2a7a45;
+                                stroke-width: 1.2;
+                            }
+
+                            .d-title {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 10.5px;
+                                font-weight: 700;
+                                fill: #2a2a2a;
+                                text-anchor: middle;
+                            }
+
+                            .d-sub {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 8.5px;
+                                font-weight: 300;
+                                fill: #6a6460;
+                                text-anchor: middle;
+                            }
+
+                            .d-label-sm {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 8px;
+                                font-weight: 500;
+                                fill: #6a6460;
+                                text-anchor: middle;
+                            }
+
+                            .d-arrow {
+                                stroke: #363636;
+                                stroke-width: 1.4;
+                                fill: none;
+                                marker-end: url(#ah3);
+                            }
+
+                            .d-arrow-red {
+                                stroke: #fd231a;
+                                stroke-width: 1.3;
+                                fill: none;
+                                marker-end: url(#ah3-red);
+                            }
+
+                            .d-arrow-ok {
+                                stroke: #2a7a45;
+                                stroke-width: 1.3;
+                                fill: none;
+                                marker-end: url(#ah3-ok);
+                            }
+
+                            .d-section {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 8.5px;
+                                font-weight: 700;
+                                letter-spacing: .1em;
+                                fill: #6a6460;
+                                text-anchor: start;
+                                text-transform: uppercase;
+                            }
+
+                            .d-warn-num {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 11px;
+                                font-weight: 800;
+                                fill: #fd231a;
+                                text-anchor: middle;
+                            }
+
+                            .d-ok-num {
+                                font-family: 'Sora', sans-serif;
+                                font-size: 11px;
+                                font-weight: 800;
+                                fill: #2a7a45;
+                                text-anchor: middle;
+                            }
+                        </style>
+                        <defs>
+                            <marker id="ah3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0,8 3,0 6" fill="#363636" />
+                            </marker>
+                            <marker id="ah3-red" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0,8 3,0 6" fill="#fd231a" />
+                            </marker>
+                            <marker id="ah3-ok" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                                <polygon points="0 0,8 3,0 6" fill="#2a7a45" />
+                            </marker>
+                        </defs>
+
+                        <!-- ═══ ROW 1 — ATTEMPT 1: PUBLIC SITE ═══ -->
+                        <text class="d-section" x="20" y="28">Attempt 1 — testing against the public site</text>
+                        <line x1="20" y1="36" x2="840" y2="36" stroke="#d8d0bc" stroke-width="0.75" />
+
+                        <!-- GH runner -->
+                        <rect class="d-node" x="20" y="55" width="140" height="60" rx="2" />
+                        <text class="d-title" x="90" y="80">GH Actions Runner</text>
+                        <text class="d-sub" x="90" y="97">Azure datacenter IP</text>
+
+                        <!-- Cloudflare block -->
+                        <rect class="d-node-dim" x="220" y="55" width="150" height="60" rx="2" />
+                        <text class="d-title" x="295" y="76" fill="#6a6460">Cloudflare</text>
+                        <text class="d-sub" x="295" y="92">bot challenge / 403</text>
+                        <circle cx="295" cy="46" r="9" fill="#fd231a" />
+                        <text class="d-warn-num" x="295" y="49.5" fill="#fff">✗</text>
+
+                        <!-- Public site -->
+                        <rect class="d-node-dim" x="430" y="55" width="170" height="60" rx="2" />
+                        <text class="d-title" x="515" y="76" fill="#6a6460">practicesoftwaretesting.com</text>
+                        <text class="d-sub" x="515" y="92">Angular UI never finishes loading</text>
+
+                        <!-- arrows row 1 -->
+                        <line class="d-arrow-red" x1="160" y1="85" x2="218" y2="85" />
+                        <line class="d-arrow-red" x1="370" y1="85" x2="428" y2="85" />
+                        <text class="d-label-sm" x="189" y="77" fill="#fd231a">HTTPS</text>
+                        <text class="d-label-sm" x="399" y="77" fill="#fd231a">blocked</text>
+
+                        <text class="d-sub" x="700" y="80" text-anchor="start" fill="#9a9189">→ intermittent</text>
+                        <text class="d-sub" x="700" y="94" text-anchor="start" fill="#9a9189">"element not found"
+                            errors</text>
+
+                        <!-- ═══ ROW 2 — ATTEMPT 2: DOCKERIZED CI ═══ -->
+                        <text class="d-section" x="20" y="155">Attempt 2 — self-hosted stack, entirely inside the
+                            runner</text>
+                        <line x1="20" y1="163" x2="840" y2="163" stroke="#d8d0bc" stroke-width="0.75" />
+
+                        <!-- GH runner 2 -->
+                        <rect class="d-node" x="20" y="182" width="130" height="180" rx="2" />
+                        <text class="d-title" x="85" y="205">GH Actions</text>
+                        <text class="d-title" x="85" y="220">Runner</text>
+                        <text class="d-sub" x="85" y="240">clones SUT repo</text>
+                        <text class="d-sub" x="85" y="254">docker compose up</text>
+                        <text class="d-sub" x="85" y="268">--build --force-recreate</text>
+                        <text class="d-sub" x="85" y="290">health-check loops</text>
+                        <text class="d-sub" x="85" y="304">(mysqladmin / curl)</text>
+                        <text class="d-sub" x="85" y="326">migrate:fresh --seed</text>
+                        <text class="d-sub" x="85" y="340">queue:work --daemon</text>
+
+                        <!-- Docker compose box -->
+                        <rect class="d-node-ok" x="200" y="182" width="330" height="180" rx="2" />
+                        <text class="d-section" x="215" y="200" fill="#2a7a45">Docker Compose (localhost)</text>
+
+                        <rect class="d-node" x="215" y="212" width="140" height="50" rx="2" />
+                        <text class="d-title" x="285" y="231">Angular UI</text>
+                        <text class="d-sub" x="285" y="246">localhost:4200</text>
+
+                        <rect class="d-node" x="215" y="272" width="140" height="50" rx="2" />
+                        <text class="d-title" x="285" y="291">Laravel API</text>
+                        <text class="d-sub" x="285" y="306">localhost:8091</text>
+
+                        <rect class="d-node" x="370" y="242" width="145" height="50" rx="2" />
+                        <text class="d-title" x="442" y="261">MariaDB</text>
+                        <text class="d-sub" x="442" y="276">seeded per run</text>
+
+                        <line class="d-arrow" x1="355" y1="237" x2="368" y2="255" />
+                        <line class="d-arrow" x1="355" y1="297" x2="368" y2="280" />
+
+                        <!-- Playwright / Chromium -->
+                        <rect class="d-node-ok" x="580" y="182" width="250" height="180" rx="2" />
+                        <text class="d-section" x="595" y="200" fill="#2a7a45">Test Execution</text>
+                        <text class="d-title" x="705" y="230">Playwright</text>
+                        <text class="d-title" x="705" y="248">(Chromium)</text>
+                        <text class="d-sub" x="705" y="268">URL=localhost:4200</text>
+                        <text class="d-sub" x="705" y="282">API_URL=localhost:8091</text>
+                        <circle cx="705" cy="320" r="10" fill="#2a7a45" />
+                        <text class="d-ok-num" x="705" y="324" fill="#fff">✓</text>
+                        <text class="d-sub" x="705" y="345">no external network,</text>
+                        <text class="d-sub" x="705" y="357">no Cloudflare in the path</text>
+
+                        <!-- arrows row 2 -->
+                        <line class="d-arrow-ok" x1="150" y1="272" x2="198" y2="272" />
+                        <line class="d-arrow-ok" x1="530" y1="272" x2="578" y2="272" />
+                        <text class="d-label-sm" x="174" y="264" fill="#2a7a45">boots stack</text>
+                        <text class="d-label-sm" x="554" y="264" fill="#2a7a45">tests hit</text>
+                    </svg>
+                </div>
+
+                <div class="qa-callout">
+                    <p class="qa-callout-head">The pivot this diagram represents</p>
+                    <p class="qa-callout-body">The application under test ships its own <code>docker-compose.yml</code>
+                        — Angular, Laravel, and MariaDB as containerized services with predictable ports. Cloning and
+                        booting it inside the runner turned an unpredictable, third-party-controlled failure
+                        (Cloudflare's bot policy) into a fully controllable, deterministic one (container configuration)
+                        — which could then actually be debugged and fixed for good. The one detail easy to miss: it
+                        isn't enough to swap <code>baseURL</code>. Every spec also calls <code>page.request</code>
+                        directly against <code>apiURL</code> for setup — leaving that pointed at production would mean
+                        the UI runs locally while the data comes from a live database.</p>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 3 — LOCATOR STRATEGY
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">03 — Locator Strategy</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    Playwright's textbook locator priority is <code>getByRole</code> →
+                    <code>getByLabel</code>/<code>getByText</code> → <code>getByTestId</code> → CSS as a last resort.
+                    The first real architectural decision of the project showed that rule isn't absolute — it has to be
+                    checked against what the application actually does.
+                </p>
+
+                <div class="qa-two-col">
+                    <div>
+                        <p class="qa-col-head">Why getByTestId won, most of the time</p>
+                        <p class="qa-col-body">The app ships a language selector (EN/DE/ES/FR/NL/TR) with form labels
+                            translated via Transloco. <code>getByLabel('First name')</code> works in English and breaks
+                            <strong>silently</strong> the moment the browser's default language changes — even while the
+                            app itself works perfectly. <code>getByTestId</code> (configured via
+                            <code>testIdAttribute: 'data-test'</code>) is immune to translation because the attribute
+                            never changes with locale. The suite standardized on <code>getByTestId</code> for most
+                            flows, reserving <code>getByRole</code> for elements with a stable accessible name (filter
+                            checkboxes, table columns, fixed-English buttons) and <code>getByLabel</code> only where
+                            locale is guaranteed fixed.</p>
+                    </div>
+                    <div>
+                        <p class="qa-col-head">Never guess a selector</p>
+                        <p class="qa-col-body">Every locator was validated against the real HTML — DevTools or the
+                            Angular source — never assumed from convention. The category page is the clearest example:
+                            rather than presuming the price slider from the overview page would also exist there,
+                            reading the Angular template confirmed <code>&lt;ngx-slider&gt;</code> is genuinely absent
+                            on <code>/category/*</code>. That's not a missing test — it's a documented product bug,
+                            asserted directly instead of silently skipped.</p>
+                    </div>
+                </div>
+
+                <span class="bug-label">Assertion — documenting an absence, not assuming one</span>
+                <div class="qa-code-block">
+                    <pre><span class="tok-cm">// category.component.html has no &lt;ngx-slider&gt; — confirmed via source read,</span>
+<span class="tok-cm">// not assumed. The overview page has one; the category page does not.</span>
+<span class="tok-kw">await</span> expect(page.getByRole(<span class="tok-st">'slider'</span>).first()).toHaveCount(<span class="tok-nb">0</span>);</pre>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 4 — FINDINGS (FLAKINESS DIAGNOSTICS)
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section about-us">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">04 — Findings</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    Synchronization was, by far, the area that demanded the most investigation — because "flaky" isn't a
+                    root cause, it's a symptom, and each occurrence below traced back to a different one. The generic
+                    fix (raise the timeout) only ever solved a fraction of them.
+                </p>
+
+                <div class="about-accordion bugs-accordion">
+
+                    <!-- FINDING 1 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>1. Strict Mode, Case 1 — <strong>Ambiguous text between title and description</strong>
+                            </h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-critical">strict mode violation — resolved to 2
+                                        elements</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">Free-text search matched content in two different
+                                        places</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Scope the locator to a specific test-id, not free
+                                        text</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> A test confirming a favorite was removed used
+                                    <code>page.getByText('Combination Pliers')</code>. Playwright refused to act,
+                                    reporting
+                                    the locator resolved to two elements. Inspecting the card revealed the product name
+                                    appeared both in <code>&lt;h5 data-test="product-name"&gt;</code> <em>and</em>
+                                    inside
+                                    <code>&lt;p data-test="product-description"&gt;</code> — the description text
+                                    happened
+                                    to contain the product name too.
+                                </p>
+                                <p>
+                                    <strong>The lesson:</strong> searching by free text is inherently risky when the
+                                    full
+                                    content of the page isn't fully known — the string can legitimately appear somewhere
+                                    unexpected. Scoping to a specific <code>data-test</code> attribute removes the
+                                    ambiguity
+                                    at the source instead of patching around it.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/14_favorits.spec.ts#L84" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>14_favorits.spec.ts#L84</code></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div><!-- /finding 1 -->
+
+                    <!-- FINDING 2 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>2. Strict Mode, Case 2 — <strong>The "fixed" .first() trap</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-critical">False positive — test passes without
+                                        proving anything</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">Locators are dynamic; .first() is re-evaluated on every
+                                        call</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Assert on element count, not on a stale
+                                        reference</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> The obvious fix for a delete-item test looks like: grab
+                                    the
+                                    first card, click delete inside it, then assert that card is hidden. But Playwright
+                                    locators are <strong>re-evaluated on every call</strong> — once card 1 is removed
+                                    from
+                                    the DOM, the old card 2 becomes the new "first card." An
+                                    <code>expect(firstCard).toBeHidden()</code> written this way re-resolves the
+                                    locator,
+                                    finds whatever now occupies that position, sees it's visible... and fails to notice
+                                    the
+                                    real assertion was never proven.
+                                </p>
+                                <p>
+                                    <strong>The lesson:</strong> this is a dangerous kind of false positive — the test
+                                    goes
+                                    green without proving anything. The fix was to assert on the <em>count</em> of
+                                    elements
+                                    before and after the action, a claim about system state rather than about an element
+                                    reference whose meaning can silently shift.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/14_favorits.spec.ts#L84" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>14_favorits.spec.ts#L84</code></span>
+                                </a>
+                                <span class="bug-label">Fix — count-based assertion instead of a stale reference</span>
+                                <div class="qa-code-block">
+                                    <pre><span class="tok-kw">const</span> cartTotalLocator = page.getByTestId(<span class="tok-st">'cart-total'</span>);
+<span class="tok-kw">const</span> firstPriceLocator = page.getByTestId(<span class="tok-st">'line-price'</span>).first();
+<span class="tok-kw">const</span> secondPriceLocator = page.getByTestId(<span class="tok-st">'line-price'</span>).nth(<span class="tok-nb">1</span>);
+<span class="tok-kw">const</span> firstPrice = <span class="tok-nb">parseFloat</span>((<span class="tok-kw">await</span> firstPriceLocator.innerText()).replace(<span class="tok-st">'$'</span>, <span class="tok-st">''</span>));
+
+<span class="tok-kw">await</span> page.locator(<span class="tok-st">'.btn.btn-danger'</span>).nth(<span class="tok-nb">1</span>).click();
+
+<span class="tok-cm">// Not "the old card is hidden" — the count of surviving delete buttons.</span>
+<span class="tok-kw">await</span> expect(page.locator(<span class="tok-st">'.btn.btn-danger'</span>)).toHaveCount(<span class="tok-nb">1</span>, { timeout: <span class="tok-nb">15000</span> });
+<span class="tok-kw">await</span> expect(cartTotalLocator).toHaveText(<span class="tok-st">'$'</span> + firstPrice.toFixed(<span class="tok-nb">2</span>));</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /finding 2 -->
+
+                    <!-- FINDING 3 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>3. Strict Mode, Case 3 — <strong>One CSS class, two table columns</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-critical">strict mode violation — resolved to 2
+                                        elements</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">Same [ngClass] directive shared by unit-price and total
+                                        columns</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Understand the table structure, then decide
+                                        deliberately which column</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> the product detail discount test used
+                                    <code>page.locator('span.discounted')</code>, which resolved to two elements.
+                                    Reading the HTML showed the <code>discounted</code> class was applied via the same
+                                    Angular <code>[ngClass]</code> conditional to <em>both</em> the unit-price column
+                                    and
+                                    the total column.
+                                </p>
+                                <p>
+                                    <strong>The lesson:</strong> the fix wasn't tacking on <code>.first()</code>
+                                    arbitrarily
+                                    — it was understanding the table's structure and explicitly deciding, and
+                                    documenting,
+                                    which of the two columns the test actually needed to validate.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/02_product-detail.spec.ts#L39" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>02_product-detail.spec.ts#L39</code></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div><!-- /finding 3 -->
+
+                    <!-- FINDING 4 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>4. Strict Mode, Case 4 — <strong>Chat history that never clears</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-critical">strict mode violation — resolved to 5
+                                        elements</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">Chat DOM is never cleared — every prior message stays
+                                        mounted</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Target .last() deliberately — the newest instance, not
+                                        "the" instance</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> the chat widget's "Back to menu" button reappears at
+                                    every
+                                    conversation step, but the DOM is never cleaned up — every prior message stays on
+                                    screen. In a longer support-ticket flow,
+                                    <code>getByTestId('chat-action-back-to-menu')</code>
+                                    resolved to five identical buttons at once. This was a UI behavior, not a badly
+                                    written
+                                    test.
+                                </p>
+                                <p>
+                                    <strong>The lesson:</strong> the fix here was the mirror image of Case 2 —
+                                    deliberately
+                                    targeting <code>.last()</code>, the newest element in the conversation, rather than
+                                    assuming there'd only ever be one. Four cases, four different real characteristics
+                                    of
+                                    the app (duplicated text, shared CSS, cumulative UI history, positional drift) — no
+                                    generic fix worked twice.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/19_chat-widget.spec.ts#L212" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>19_chat-widget.spec.ts#L212</code></span>
+                                </a>
+                            </div>
+                        </div>
+                    </div><!-- /finding 4 -->
+
+                    <!-- FINDING 5 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>5. A Typo, Not a Race — <strong>the cost of a manual network listener</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                            <div class="bug-meta-item">
+                                <span class="bug-meta-key">Symptom</span>
+                                <span class="bug-meta-value severity-high">Intermittent — edited row not always first after re-search</span>
+                            </div>
+                            <div class="bug-meta-item">
+                                <span class="bug-meta-key">Root cause</span>
+                                <span class="bug-meta-value">A typo (<code>'QUERY'</code> instead of <code>'GET'</code>) hid the real issue for a
+                                    while; the underlying race is timing between the write and the search reflecting it</span>
+                            </div>
+                            <div class="bug-meta-item">
+                                <span class="bug-meta-key">Status</span>
+                                <span class="bug-meta-value severity-high">Open — mitigated via retry, not eliminated</span>
+                            </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke, first pass:</strong> editing and re-searching a product in the admin
+                                    panel used <code>page.waitForResponse(r => r.request().method() === 'QUERY' ...)</code>
+                                    — <code>'QUERY'</code> isn't a valid HTTP method, it was a typo for <code>'GET'</code>,
+                                    so the promise never resolved. Manually tracking a network listener across several
+                                    searches in the same test turned out fragile on its own, independent of the app.
+                                </p>
+                                <p>
+                                    <strong>What's still true today:</strong> after replacing the manual listener with an
+                                    auto-waiting assertion, the test is far more stable — but it still fails intermittently
+                                    (about 1 in every few CI runs) with the edited row simply not present as the first row
+                                    within the timeout window, which points to real timing between the write and the search
+                                    index reflecting it, not a test bug:
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/18_admin-dashboard.spec.ts#L44" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>18_admin-dashboard.spec.ts#L44</code></span>
+                                </a>
+
+                                <div class="qa-code-block">
+                                    <pre><span class="tok-cm">// actual failure from a real CI run, kept here rather than hidden</span>
+                                                                Expected substring: <span class="tok-st">"NewTooljpebhEdited"</span>
+                                                                unexpected value: <span class="tok-st">"01KZ7T1JH3WF7RC07959QDGJGACombination Pliers23$14.15EditDelete"</span></pre>
+                                </div>
+                                <p>
+                                    <strong>The lesson:</strong> waiting for the right network response is necessary but not
+                                    sufficient — the data returned still has to be checked against what the test expects. And
+                                    just as important: when a test remains flaky after a genuine root-cause fix, the honest
+                                    move is to say so explicitly rather than mark it green and move on. This one is tracked,
+                                    not hidden — Playwright's retry currently absorbs it, and filtering the row by content
+                                    instead of position is the next step being evaluated.
+                                </p>
+                            </div>
+                        </div>
+                    </div><!-- /finding 5 -->
+
+                    <!-- FINDING 6 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>6. The Hidden Hammer — <strong>UI state differs between production and CI</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-high">Timeout on getByRole('checkbox',
+                                        {name:'Hammer'}) — CI only</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">The Dockerized (Sprint 5) build starts the category
+                                        tree collapsed</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Expand the parent category before checking a
+                                        child</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> a category-filter test that always passed against
+                                    production started consistently timing out in CI, right after the pivot to Docker
+                                    described in Section 2. The category tree in the sidebar of the local (Sprint 5)
+                                    build
+                                    starts <strong>collapsed</strong> by default, hiding the "Hammer" checkbox inside
+                                    the
+                                    closed "Hand Tools" parent. Playwright correctly refuses to interact with a hidden
+                                    element and burned through the 30s timeout waiting for it to appear.
+                                </p>
+                                <p>
+                                    <strong>The real lesson:</strong> not the one-line fix itself, but the diagnostic
+                                    method — a Playwright timeout almost always points to a real, verifiable state of
+                                    the
+                                    application (hidden, disabled, or off-screen), never to a random framework bug. The
+                                    correct move is comparing the two environments structurally before touching the
+                                    test.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/01_product-overview.spec.ts#L77" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>01_product-overview.spec.ts#L77</code></span>
+                                </a>
+                                <span class="bug-label">Fix — expand the parent before checking the child</span>
+                                <div class="qa-code-block">
+                                    <pre><span class="tok-kw">await</span> page.getByRole(<span class="tok-st">'checkbox'</span>, { name: <span class="tok-st">'Hand Tools'</span> }).click(); <span class="tok-cm">// expands the tree</span>
+<span class="tok-kw">await</span> page.getByRole(<span class="tok-st">'checkbox'</span>, { name: <span class="tok-st">'Hammer'</span> }).check();</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /finding 6 -->
+
+                    <!-- FINDING 7 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>7. TOTP Clock Drift — <strong>The hardest bug to reproduce on demand</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Symptom</span>
+                                    <span class="bug-meta-value severity-high">Intermittent "Invalid TOTP" on
+                                        otherwise-correct codes</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Root cause</span>
+                                    <span class="bug-meta-value">TOTP is time-window based; local clock vs. server clock
+                                        drift</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key">Fix pattern</span>
+                                    <span class="bug-meta-value">Derive an offset from the API's own Date header,
+                                        generate codes against it</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p>
+                                    <strong>What broke:</strong> TOTP codes generated with the <code>otpauth</code>
+                                    library
+                                    (SHA1, 6 digits, 30s period) from the app's own exposed secret
+                                    (<code>data-test="totp-secret"</code>) failed verification intermittently — a few
+                                    seconds of drift between the test machine's clock and the server's is enough to land
+                                    in
+                                    the wrong 30-second window.
+                                </p>
+                                <p>
+                                    <strong>The fix:</strong> read the <code>Date</code> HTTP header returned by the API
+                                    on
+                                    user registration, compute a <code>timeOffset</code>, and generate every subsequent
+                                    code against <code>Date.now() + timeOffset</code> instead of the local clock. Low
+                                    frequency, high cost to debug — it doesn't reproduce on the first try, which made it
+                                    one of the most expensive bugs in the whole suite to pin down.
+                                </p>
+                                <a class="finding-source-link" href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/11_topt.spec.ts#L83" target="_blank" rel="noopener noreferrer">
+                                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.49,20.14 9.49,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.92 11.15,6.8 12,6.8C12.85,6.8 13.71,6.92 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"/></svg>
+                                    <span>View source — <code>11_topt.spec.ts#L83</code></span>
+                                </a>
+                                <span class="bug-label">Fix — sync to server time before generating a code</span>
+                                <div class="qa-code-block">
+                                    <pre><span class="tok-kw">let</span> timeOffset = <span class="tok-nb">0</span>;
+
+<span class="tok-kw">const</span> serverDateHeader = registerResponse.headers()[<span class="tok-st">'date'</span>];
+<span class="tok-kw">if</span> (serverDateHeader) {
+    timeOffset = <span class="tok-kw">new</span> <span class="tok-fn">Date</span>(serverDateHeader).getTime() - Date.now();
+}
+
+<span class="tok-kw">function</span> <span class="tok-fn">generateTOTP</span>(secret: <span class="tok-nb">string</span>): <span class="tok-nb">string</span> {
+    <span class="tok-kw">const</span> adjustedTime = Date.now() + timeOffset;
+    <span class="tok-kw">const</span> totp = <span class="tok-kw">new</span> OTPAuth.TOTP({
+        secret: OTPAuth.Secret.fromBase32(secret),
+        digits: <span class="tok-nb">6</span>, algorithm: <span class="tok-st">'SHA1'</span>, period: <span class="tok-nb">30</span>,
+    });
+    <span class="tok-kw">return</span> totp.generate({ timestamp: adjustedTime });
+}</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /finding 7 -->
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 5 — TEST PLAN SCOPE (Accordion)
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">05 — Test Plan Scope</span>
+                        </div>
+                        </div>
+                       
+
+                <p class="qa-strategy-body">
+                    The 24 spec files map to eight functional domains of the application. Every test is named and
+                    tagged (<code>@sprint5</code>, <code>@AC1</code>, <code>@AC2</code>...) 1:1 to a functional
+                    acceptance criterion, with the matching <em>Given/When/Then</em> as a comment at the top of the
+                    test body — allowing execution to be filtered by criterion (<code>--grep @AC5</code>) with a
+                    report that traces directly back to a requirement.
+                </p>
+
+                 
+                        <div class="qa-callout">
+                            <p class="qa-callout-head">Requirements traceability, not assumption</p>
+                            <p class="qa-callout-body">
+                                Every acceptance criterion tagged above comes from the project's own
+                                <a href="https://testsmith-io.github.io/practice-software-testing/#/user-stories/v5" target="_blank"
+                                    rel="noopener noreferrer">published Sprint 5 user stories</a>
+                                — not from reverse-engineering the UI. That mattered in both directions.
+                                Error message wording was preserved verbatim even where the spec itself has a
+                                grammatical slip (<code>"Your current password does not matches with the password."</code>),
+                                because "correcting" it would mean asserting against text the app never actually shows.
+                                And where the spec and the shipped app disagree — AC1 of the Contact Form calls for a
+                                <code>"Known user, [Full Name]"</code> message, but the deployed app actually renders
+                                <code>"Hello Jane Doe, please fill out..."</code> — the test asserts against what the
+                                application actually does, with the discrepancy documented rather than silently
+                              
+                                reconciled to match the doc.
+                            </p>
+                        </div>
+
+                <div class="about-accordion bugs-accordion">
+
+                    <!-- DOMAIN 1 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 1 — <strong>Catalog & Product Discovery</strong> <span class="story-count">3
+                                    files · 33 tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>01_product-overview</code>,
+                                    <code>02_product-detail</code>, <code>03_rental_products</code>.</p>
+                                <ul>
+                                    <li><strong>Overview grid:</strong> card content (image, name, price), search with
+                                        active-filter reset, category and brand checkboxes, hierarchical parent/child
+                                        category selection, sorting (name/price, both directions), the price range
+                                        slider (default $1–$100, max $200) driven by simulated mouse drag <em>and</em>
+                                        keyboard arrow input, and discount/out-of-stock badges.</li>
+                                    <li><strong>Product detail:</strong> quantity selector clamped between 1 and
+                                        999,999,999, add-to-cart success messaging, out-of-stock disabling the button,
+                                        favorites (add / duplicate / unauthorized), and related products.</li>
+                                    <li><strong>Rentals:</strong> the duration slider (1–10 hours, keyboard-driven for
+                                        determinism) and the assertion <code>total = hourly_rate × duration</code>,
+                                        recomputed from the DOM rather than hardcoded.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 2 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 2 — <strong>Checkout Flow</strong> <span class="story-count">4 files · 24
+                                    tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>04_checkout-cart</code>,
+                                    <code>05_checkout-signIn</code>, <code>06_checkout-address</code>,
+                                    <code>07_checkout-payment</code>.</p>
+                                <ul>
+                                    <li><strong>Cart:</strong> quantity recalculation derived mathematically from the
+                                        read unit price (never a hardcoded expected value), item deletion with
+                                        count-based assertions (Finding 2), empty-cart state, and the 15% discount
+                                        badge/subtotal/total math on discounted items.</li>
+                                    <li><strong>Sign-in step:</strong> guest login form, and full TOTP-gated login
+                                        reproduced end-to-end during checkout — register, enable 2FA, log out, add to
+                                        cart, and log back in through the checkout wizard with a live TOTP code.</li>
+                                    <li><strong>Address:</strong> field length limits against Angular's
+                                        <code>ng-invalid</code> class, required-field validation disabling "Proceed",
+                                        and a real postcode-lookup flow (NL/1011AB) used specifically to satisfy backend
+                                        address validation for the order-placement test.</li>
+                                    <li><strong>Payment:</strong> all five payment methods and their field sets, credit
+                                        card expiration-date validation, and a documented UI race condition in the
+                                        "Confirm" button (see Section 6) reproduced faithfully with two sequential
+                                        clicks rather than masked.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 3 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 3 — <strong>Authentication & Account Security</strong> <span
+                                    class="story-count">6 files · 38 tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>08_user-registration</code>,
+                                    <code>09_user-login</code>, <code>10_forgot-password</code>, <code>11_topt</code>,
+                                    <code>12_profile</code>, <code>13_change-password</code>.</p>
+                                <ul>
+                                    <li><strong>Registration & password strength:</strong> all required fields,
+                                        real-time password requirement feedback, and the 5-level strength indicator
+                                        (Weak → Excellent), reused between registration and password change — the latter
+                                        needed a manual <code>dispatchEvent('input')</code> to work around an
+                                        <code>updateOn: 'blur'</code> delay.</li>
+                                    <li><strong>Login:</strong> role-based redirect (customer vs. admin), invalid
+                                        credentials, account locking after 3 failed attempts (HTTP 423 + message), admin
+                                        exemption from locking, disabled-account rejection (HTTP 403), and Google OAuth
+                                        popup validation (domain, callback route, window dimensions) without
+                                        authenticating against the real provider.</li>
+                                    <li><strong>TOTP:</strong> full setup lifecycle — QR code, manual secret,
+                                        verification, invalid code — plus the server-clock-sync fix from Finding 7, and
+                                        the business rule denying TOTP setup to the two shared demo accounts.</li>
+                                    <li><strong>Profile & password change:</strong> editable vs. read-only fields,
+                                        successful updates with fade-out confirmation, password-mismatch and
+                                        current-password-verification errors, and forced logout after a successful
+                                        password change.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 4 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 4 — <strong>Personalization</strong> <span class="story-count">2 files · 5
+                                    tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>14_favorits</code>, <code>24_browse-by-category</code>.
+                                </p>
+                                <ul>
+                                    <li><strong>Favorites:</strong> the list is seeded entirely via API (register →
+                                        login → <code>/favorites</code>) rather than clicking through the UI three
+                                        times, keeping the test focused on the favorites page itself; empty state and
+                                        removal are covered separately.</li>
+                                    <li><strong>Category browsing:</strong> confirms the category page shares
+                                        category/brand filters, sorting, and pagination with the overview — but
+                                        explicitly documents that the price slider does <em>not</em> exist there (see
+                                        Section 3).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 5 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 5 — <strong>Post-Purchase & Support</strong> <span class="story-count">3 files · 19 tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>15_invoices-pdf</code>, <code>16_messages</code>,
+                                    <code>17_contact-form</code>.</p>
+                                <ul>
+                                    <li><strong>Invoices:</strong> generated PDF invoices tied to real orders, validated
+                                        for presence and identifying data rather than pixel content.</li>
+                                    <li><strong>Messages:</strong> a paginated table (subject, message truncated to 50
+                                        chars, status badge, date, details link), chronological reply ordering verified
+                                        by comparing two real timestamps, and posting a reply through the UI with a live
+                                        network-response wait.</li>
+                                    <li><strong>Contact form:</strong> auto-fill and field-hiding for logged-in users,
+                                        guest-required-field validation, the 50-character minimum message rule, and the
+                                        unusual file-attachment rule — <code>.txt</code> only, and the file must be
+                                        exactly 0 KB — tested with in-memory buffers instead of versioned fixture files.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 6 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 6 — <strong>Admin Operations</strong> <span class="story-count">1 file · 9
+                                    tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>File:</strong> <code>18_admin-dashboard</code>.</p>
+                                <ul>
+                                    <li><strong>Dashboard:</strong> the sales chart canvas and the paginated
+                                        recent-invoices table.</li>
+                                    <li><strong>Full CRUD suites:</strong> products, categories, and brands each follow the same add → search → edit →
+                                        search → delete lifecycle in the UI, with unique randomized names to avoid collisions between
+                                        parallel or repeated runs. Users are seeded via API and then edited/deleted through the UI.</li>
+                                    <li><strong>Order management:</strong> status dropdown values
+                                        (<code>AWAITING_FULFILLMENT</code> → <code>COMPLETED</code>) and the order-edit
+                                        detail sections.</li>
+                                    <li><strong>Account enable/disable:</strong> toggling a user's <code>enabled</code>
+                                        flag from the admin panel and confirming, in a <em>second browser context</em>
+                                        logged in as that customer, that login is actually blocked and later restored —
+                                        a real cross-session effect, not just a UI checkbox state.</li>
+                                    <li><strong>Reports:</strong> monthly/weekly sales charts and the statistics page's
+                                        four breakdown panels.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 7 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 7 — <strong>Conversational & Discount Engine</strong> <span class="story-count">3 files · 22 tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>19_chat-widget</code>,
+                                    <code>20_geo-location-discount</code>, <code>21_combination-discount</code>.</p>
+                                <ul>
+                                    <li><strong>Chat widget:</strong> the menu (Find Product / Order Product / Checkout
+                                        / Support), product search returning up to 5 result cards, a full order-to-cart
+                                        flow with quantity selection, and an <em>entire checkout wizard re-implemented
+                                            conversationally</em> — cart summary → address → payment → confirmation,
+                                        driven step-by-step as a state machine where every bot reply is confirmed by
+                                        content before the next input is sent. The invoice endpoint was mocked via
+                                        <code>page.route()</code> to isolate the chat flow from backend postcode-lookup
+                                        validation. The empty-cart scenario is a documented <code>test.fixme</code> — it
+                                        exposes a real JS exception
+                                        (<code>TypeError: reading cart_items of null</code>).</li>
+                                    <li><strong>Geo-location discount:</strong> five cities × five discount tiers
+                                        (5%–25%), plus a neutral/unsupported-location case, all driven by mocked
+                                        <code>GEO_LOCATION</code> coordinates in <code>localStorage</code> injected via
+                                        <code>page.addInitScript</code> before the page loads.</li>
+                                    <li><strong>Combination discount:</strong> the 15% cart-wide discount that appears
+                                        only when a rental item and a non-rental item share a cart, validated on the
+                                        cart page <em>and</em> re-validated against a real invoice created via API, with
+                                        the discount removed and reverted when the mixed-cart condition no longer holds.
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DOMAIN 8 -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2>Domain 8 — <strong>Compliance & Internationalization</strong> <span
+                                    class="story-count">2 files · 11 tests</span></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                </svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-body">
+                                <p><strong>Files:</strong> <code>22_multi-language</code>,
+                                    <code>23_privacy-policy</code>.</p>
+                                <ul>
+                                    <li><strong>i18n:</strong> automatic browser-language detection for all 6 supported
+                                        languages via <code>test.use({ locale })</code>, fallback to English for
+                                        unsupported locales, manual switching through the UI selector, and — critically
+                                        — <strong>persistence</strong>: a manually chosen language must survive a page
+                                        reload and outrank automatic detection on the next visit.</li>
+                                    <li><strong>Privacy policy:</strong> presence of every required disclosure topic
+                                        (Google Sign-In, data collection, hourly automatic removal, third-party
+                                        services, data security, contact info).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 6 — CI/CD JOURNEY
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">06 — CI/CD Journey</span>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    The final workflow doesn't run <code>npx playwright test</code> against a URL — it builds the
+                    thing it's testing, from source, inside the runner, every time. Eleven sequential steps, each
+                    added to solve a problem the previous version actually hit in practice.
+                </p>
+
+                <div class="qa-pipeline-row">
+                    <div class="qa-pipeline-step">
+                        <div class="qa-pipeline-step-num">Steps 1–2</div>
+                        <div class="qa-pipeline-step-title">Checkout & clone SUT</div>
+                        <div class="qa-pipeline-step-body">Checks out the test repo, then clones the application's real
+                            source — testing against current product code, not a frozen image.</div>
+                    </div>
+                    <div class="qa-pipeline-step">
+                        <div class="qa-pipeline-step-num">Steps 3–4</div>
+                        <div class="qa-pipeline-step-title">Configure & boot</div>
+                        <div class="qa-pipeline-step-body">Forces <code>production: true</code>, injects dummy Google
+                            OAuth creds so the build doesn't fail on a missing var, then
+                            <code>docker compose up --build --force-recreate</code>.</div>
+                    </div>
+                    <div class="qa-pipeline-step">
+                        <div class="qa-pipeline-step-num">Steps 5–6</div>
+                        <div class="qa-pipeline-step-title">Container plumbing</div>
+                        <div class="qa-pipeline-step-body">Fixes <code>bootstrap/cache</code> / <code>storage</code>
+                            permissions on the fresh Laravel container, then installs Composer dependencies inside it.
+                        </div>
+                    </div>
+                    <div class="qa-pipeline-step">
+                        <div class="qa-pipeline-step-num">Steps 7–9</div>
+                        <div class="qa-pipeline-step-title">Health checks & seed</div>
+                        <div class="qa-pipeline-step-body">Active polling loops (<code>mysqladmin ping</code>, then
+                            <code>curl</code> for API and UI) instead of a fixed sleep, then
+                            <code>migrate:fresh --seed</code> and a background queue worker.</div>
+                    </div>
+                    <div class="qa-pipeline-step">
+                        <div class="qa-pipeline-step-num">Steps 10–11</div>
+                        <div class="qa-pipeline-step-title">Test & report</div>
+                        <div class="qa-pipeline-step-body">Runs the Chromium project with
+                            <code>URL</code>/<code>API_URL</code> pointed at localhost, and uploads the HTML report as
+                            an artifact even on failure.</div>
+                    </div>
+                </div>
+
+                <div class="qa-metrics-grid">
+                    <div class="qa-metric-cell">
+                        <div class="qa-metric-number">24</div>
+                        <div class="qa-metric-label">Spec files across<br>8 functional domains</div>
+                    </div>
+                    <div class="qa-metric-cell">
+                        <div class="qa-metric-number">161</div>
+                        <div class="qa-metric-label">Tests at the final<br>stable suite state</div>
+                    </div>
+                    <div class="qa-metric-cell">
+                        <div class="qa-metric-number">11</div>
+                        <div class="qa-metric-label">CI pipeline steps,<br>each solving a real failure</div>
+                    </div>
+                    <div class="qa-metric-cell">
+                        <div class="qa-metric-number">1</div>
+                        <div class="qa-metric-label">Architecture pivot:<br>public site → self-hosted stack</div>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body">
+                    It was running that final, fully-local version — with the external network dependency finally
+                    eliminated — that the "Hidden Hammer" bug from Finding 6 surfaced. Removing one whole class of
+                    problem (Cloudflare) exposed the next layer underneath it (initial UI state differing between
+                    production and the freshly-deployed local build). CI/CD debugging turned out to be a sequential
+                    process of elimination, not a single event.
+                </p>
+
+                <div class="qa-pipeline-trace">
+                    <div class="qa-trace-node">
+                        <span class="qa-trace-num qa-trace-num--ok">✓ passing</span>
+                        <span class="qa-trace-label">Against production</span>
+                    </div>
+                    <span class="qa-trace-arrow">→</span>
+                    <div class="qa-trace-node qa-trace-node--fail">
+                        <span class="qa-trace-num">Cloudflare</span>
+                        <span class="qa-trace-label">60+ flaky failures<br>in GitHub Actions</span>
+                    </div>
+                    <span class="qa-trace-arrow qa-trace-arrow--red">→</span>
+                    <div class="qa-trace-node qa-trace-node--fail">
+                        <span class="qa-trace-num">Docker pivot</span>
+                        <span class="qa-trace-label">network layer fixed,<br>new problem surfaces</span>
+                    </div>
+                    <span class="qa-trace-arrow qa-trace-arrow--red">→</span>
+                    <div class="qa-trace-node qa-trace-node--fail">
+                        <span class="qa-trace-num">Hammer hidden</span>
+                        <span class="qa-trace-label">collapsed tree,<br>CI-only timeout</span>
+                    </div>
+                    <span class="qa-trace-arrow">→</span>
+                    <div class="qa-trace-node">
+                        <span class="qa-trace-num qa-trace-num--ok">✓ 161 tests</span>
+                        <span class="qa-trace-label">stable, deterministic,<br>fully local</span>
+                    </div>
+                </div>
+
+                <span class="bug-label" style="margin-top: 2rem; display:block;">Root-cause classification — same
+                    symptom, different diagnoses</span>
+                <table class="qa-findings-table">
+                    <thead>
+                        <tr>
+                            <th>Symptom</th>
+                            <th>Category</th>
+                            <th>Right response?</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Strict mode violation (4 cases)</td>
+                            <td><span class="finding-critical">Test / app coupling</span></td>
+                            <td>No generic fix</td>
+                            <td>Each traced to a distinct app characteristic — duplicated text, shared CSS class,
+                                cumulative DOM, positional drift</td>
+                        </tr>
+                        <tr>
+                            <td>Timeout on public-site tests in CI</td>
+                            <td><span class="finding-critical">Infrastructure (3rd party)</span></td>
+                            <td>Remove the dependency</td>
+                            <td>Cloudflare bot policy on GH Actions' datacenter IPs — not fixable from the test side
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>waitForResponse rejects on a bad predicate; still intermittent after fixing it</td>
+                            <td><span class="finding-medium">Test bug, then real timing</span></td>
+                            <td>Fixed the typo; still investigating</td>
+                            <td>A 'QUERY' typo masked the real issue at first; remaining flake likely reflects genuine write→search timing, not a test bug — tracked, not hidden</td>
+                        </tr>
+                        <tr>
+                            <td>Intermittent timeouts on public prod endpoints</td>
+                            <td><span class="finding-medium">Real server latency</span></td>
+                            <td>Raise the tolerance</td>
+                            <td>Only after ruling out logic errors — same flow passed cleanly on another browser in the
+                                same run</td>
+                        </tr>
+                        <tr>
+                            <td>Checkbox never becomes visible — CI only</td>
+                            <td><span class="finding-medium">Environment difference</span></td>
+                            <td>Fix the interaction path</td>
+                            <td>Collapsed-by-default sidebar tree in the Sprint 5 Docker build, not in production</td>
+                        </tr>
+                        <tr>
+                            <td>Correct TOTP rejected intermittently</td>
+                            <td><span class="finding-medium">Clock drift</span></td>
+                            <td>Sync to server time</td>
+                            <td>Lowest-frequency, highest-cost-to-reproduce bug in the suite</td>
+                        </tr>
+                        <tr>
+                            <td>Final suite run, fully Dockerized</td>
+                            <td><span class="finding-pass">Stable</span></td>
+                            <td>—</td>
+                            <td>161 tests, deterministic, zero external network dependency</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════
+             SECTION 7 — AUTOMATION APPROACH
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">07 — Automation Approach</span>
+                    </div>
+                </div>
+
+                <div class="qa-two-col">
+                    <div>
+                        <p class="qa-col-head">Hybrid testing — API for setup, UI for validation</p>
+                        <p class="qa-col-body"><code>page.request</code> prepares state directly through the API
+                            whenever a test only needs a <em>state</em>, not a validated journey to reach it: user
+                            registration and login tokens, seeding a cart or favorites list, creating full invoices to
+                            test the invoice display page in isolation, and elevating to an admin session to flip a
+                            user's <code>enabled</code> flag for edge-case testing. <code>page.route()</code> is used
+                            sparingly, to mock the invoice endpoint during the chat-widget checkout flow — isolating
+                            that specific UI journey from an unrelated backend postcode-lookup dependency.</p>
+                    </div>
+                    <div>
+                        <p class="qa-col-head">Data isolation between tests</p>
+                        <p class="qa-col-body">Any test that mutates user state (password, TOTP, account locking,
+                            favorites) creates its own account via API with a unique email
+                            (<code>user-${Date.now()}@example.com</code>), never reusing a fixed account for anything
+                            destructive. The two shared demo accounts (<code>customer@...</code>,
+                            <code>admin@...</code>) are reserved for read-only or non-destructive scenarios — avoiding
+                            the classic "one test breaks the next" failure caused by execution-order dependency.</p>
+                    </div>
+                </div>
+
+                <p class="qa-strategy-body" style="margin-top: 1rem;">
+                    Business-rule math is never hardcoded when it can be derived: cart line totals are recomputed
+                    from the unit price read off the DOM, rental totals from hourly-rate × slider duration, and the
+                    15% combination discount is checked with floating-point tolerance
+                    (<code>toBeCloseTo</code>) against a subtotal read from the page itself — making every one of
+                    those assertions resilient to price or seed-data changes between runs.
+                </p>
+
+                <div class="qa-callout">
+                    <p class="qa-callout-head">Documenting known bugs instead of hiding them</p>
+                    <p class="qa-callout-body">Two confirmed application defects — the pre-fill of a logged-in user's
+                        address at checkout, and a JavaScript exception when starting chat checkout with an empty cart —
+                        are kept in the suite as <code>test.fixme(true, 'reason')</code> rather than deleted. The test's
+                        intent and expected assertion stay in the codebase and visible in every run's output, without
+                        breaking the pipeline. A third defect — a real payment-confirmation race condition, where the
+                        first click only "warms up" internal state and only the second click actually creates the order
+                        — wasn't masked either: the test reproduces the exact two-click behavior with two sequential,
+                        distinct <code>waitForResponse</code> calls, proving the real user flow instead of hiding the
+                        bug behind an artificial workaround.</p>
+                </div>
+
+                
+            </div>
+        </section>
+
+        <!-- ══════════════════════════════════════════
+             SECTION 8 — ABOUT ME
+        ═══════════════════════════════════════════ -->
+        <section class="qa-section">
+            <div class="container">
+                <div class="qa-section-head">
+                    <div class="filter-options">
+                        <span class="filter-btn active">08 — The Engineer</span>
+                    </div>
+                </div>
+
+                <h2 class="qa-project-title" style="font-size: 2rem;">From Design to Quality Assurance</h2>
+
+                <p class="qa-strategy-body">
+                    My background is in design and visual communication, which taught me to look closely at what's
+                    actually happening on screen instead of what's supposed to happen. That instinct carried over
+                    directly into test automation — the strict-mode violations in Section 4 weren't solved by
+                    reading Playwright documentation harder; they were solved by reading the application's real HTML
+                    and asking why a locator found more than one thing.
+                </p>
+                <p class="qa-strategy-body">
+                    I'm transitioning into Software Quality Assurance because I want the paranoia for edge cases and
+                    the discipline of a regression net that a designer's eye alone doesn't give you. This suite —
+                    24 files, 161 tests, and a CI pipeline that had to be rebuilt from the ground up once — is one
+                    month of learning Playwright by hitting real failures and diagnosing them one at a time, not by
+                    following a tutorial to a green checkmark.
+                </p>
+            </div>
+        </section>
+
+
+        <!-- ─── Footer ─── -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-copyright">
+                        <div class="footer-text-line">
+                            <span class="text">QA portfolio of <span class="highlighted">Fabio Alves</span></span>
+                        </div>
+                        <div class="footer-text-line">
+                            <span class="text">built to the same standard as <span class="highlighted">the
+                                    tests</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </div><!-- /#page-content-wrapper -->
+
+
+    <!-- ═══ Module init ═══ -->
+    <script type="module">
+        import HeaderScroll from '/header-scroll.js';
+        import Accordion from '/accordion.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            HeaderScroll.init();
+            Accordion.init();
+        });
+    </script>
+
+    <!-- Loader control (identical to main site) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loaderWrapper = document.getElementById('loader-wrapper');
+            const loaderBackground = document.getElementById('loader-background');
+            const loaderLogoBg = document.getElementById('loader-logo-bg');
+            const loaderLogoAccent = document.getElementById('loader-logo-accent');
+            const body = document.body;
+
+            if (!loaderWrapper) { body.classList.add('loading-done'); return; }
+
+            requestAnimationFrame(() => { loaderBackground.style.transform = 'scaleY(0)'; });
+
+            setTimeout(() => {
+                loaderLogoBg.style.opacity = '0';
+                loaderLogoAccent.style.opacity = '1';
+            }, 150);
+
+            setTimeout(() => {
+                loaderLogoAccent.style.opacity = '0';
+            }, 1500);
+
+            setTimeout(() => {
+                body.classList.add('loading-done');
+                setTimeout(() => loaderWrapper && loaderWrapper.remove(), 600);
+            }, 1900);
+        });
+    </script>
+
+</body>
+
+</html>

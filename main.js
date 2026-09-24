@@ -1,141 +1,128 @@
 // main.js - Main entry point that initializes all modules
-import './styles.css'; // Import the CSS file
+import './styles.css';
 
-// Import modules
+import I18n from './i18n.js';
 import HeaderScroll from './header-scroll.js';
+import SmoothScroll from './smooth-scroll.js';
 import FilterMenu from './filter-menu.js';
 import IsotopeManager from './isotope-manager.js';
 import TextAnimator from './text-animation.js';
 import PortfolioLoader from './portfolio-loader.js';
 import Accordion from './accordion.js';
-import SmoothScroll from './smooth-scroll.js';
+
 import HeroBackgroundManager from './hero-background-manager.js';
 import Lightbox from './lightbox.js';
 import ContactForm from './contact-form.js';
 
-// Document ready function
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM Content Loaded - Initializing modules...");
+document.addEventListener('DOMContentLoaded', function () {
 
-    // Initialize HeroBackgroundManager FIRST if it affects layout early, or among the first
-    const heroBgManagerInit = HeroBackgroundManager.init();
-    console.log("Hero Background Manager initialized:", heroBgManagerInit);
+    // I18n must init first: it sets the correct-language text on every
+    // data-i18n element and builds the language switcher before any other
+    // module reads text off the page or reads I18n.t() for dynamic markup.
+    I18n.init();
 
-    // Initialize other modules
-    const headerInit = HeaderScroll.init();
-    console.log("Header Scroll module initialized:", headerInit);
+    HeroBackgroundManager.init();
+    HeaderScroll.init();
+    TextAnimator.init();
+    IsotopeManager.init();
 
-    const textAnimatorInit = TextAnimator.init();
-    console.log("Text Animator module initialized:", textAnimatorInit);
+    // Re-apply whatever anchor scroll the browser tried to do natively on load,
+    // now that the header's real fixed-position dimensions are known. header-scroll.js
+    // calculates these via a setTimeout(0), so a short delay here is enough to run after it.
+    if (window.__pendingHash) {
+        const targetEl = document.getElementById(window.__pendingHash.slice(1));
+        const header = document.querySelector('.header');
+        if (targetEl && header) {
+            setTimeout(() => SmoothScroll.scrollToTarget(targetEl, header), 50);
+        }
+        window.__pendingHash = null;
+    }
 
-    const isotopeManagerInit = IsotopeManager.init();
-    console.log("Isotope Manager module initialized:", isotopeManagerInit);
+    // FilterMenu needs IsotopeManager and TextAnimator
+    FilterMenu.init(IsotopeManager, TextAnimator);
 
-    // Make FilterMenu accessible globally for cross-module communication
+    // Wire FilterMenu into IsotopeManager WITHOUT using a global.
+    // IsotopeManager uses this ref in handleLoadMore / updateLoadMoreButtonVisibility.
+    IsotopeManager.setFilterMenu(FilterMenu);
+
+    // Keep the global for any legacy code that may still reference window.filterMenu,
+    // but new code should go through IsotopeManager.setFilterMenu().
     window.filterMenu = FilterMenu;
-    const filterMenuInit = FilterMenu.init(IsotopeManager, TextAnimator);
-    console.log("Filter Menu module initialized:", filterMenuInit);
 
-    const accordionInit = Accordion.init();
-    console.log("Accordion module initialized:", accordionInit);
+    Accordion.init();
+    PortfolioLoader.init(IsotopeManager);
+    SmoothScroll.init();
+    Lightbox.init();
+    ContactForm.init();
 
-    const portfolioLoaderInit = PortfolioLoader.init(IsotopeManager);
-    console.log("Portfolio Loader module initialized:", portfolioLoaderInit);
-
-    const smoothScrollInit = SmoothScroll.init();
-    console.log("Smooth Scroll module initialized:", smoothScrollInit);
-
-    const lightboxInit = Lightbox.init();
-    console.log("Lightbox module initialized:", lightboxInit);
-
-    const contactFormInit = ContactForm.init();
-    console.log("Contact Form module initialized:", contactFormInit);
-
-    // Listen for portfolio items loaded event
-    window.addEventListener('portfolioItemsLoadedAndLightboxDataReady', function() {
-        console.log("Event: portfolioItemsLoadedAndLightboxDataReady received in main.js");
+    // --- Portfolio click listeners (lightbox + prev/next) ---
+    window.addEventListener('portfolioItemsLoadedAndLightboxDataReady', function () {
         attachPortfolioClickListeners();
     });
 
-    // --- IMPROVED ROUTING LOGIC ---
-    let initialFilterApplied = false; // Flag to prevent this from running multiple times
+    // --- Routing ---
+    let initialFilterApplied = false;
 
     function applyInitialFilter() {
-        if (initialFilterApplied) return; // Only run once
-
+        if (initialFilterApplied) return;
         const slug = window.location.hash.replace(/^#\/?/, '') || 'everything';
-        console.log(`Applying initial filter from URL for slug: ${slug}`);
         FilterMenu.applyFilterFromSlug(slug);
         initialFilterApplied = true;
     }
 
-    // The primary method: Listen for our custom event
-    window.addEventListener('isotopeFirstLayoutDone', () => {
-        console.log("Event: isotopeFirstLayoutDone received. Applying initial filter.");
-        applyInitialFilter();
-    });
+    window.addEventListener('isotopeFirstLayoutDone', applyInitialFilter);
 
-    // A robust fallback: If the custom event fails, apply the filter on window.load
     window.addEventListener('load', () => {
-        console.log("Event: window.load received. Checking if initial filter was applied.");
-        setTimeout(() => { // Use a small timeout to ensure other scripts have finished
-            if (!initialFilterApplied) {
-                console.warn("Fallback: 'isotopeFirstLayoutDone' was not detected. Applying filter on window.load.");
-                applyInitialFilter();
-            }
+        setTimeout(() => {
+            if (!initialFilterApplied) applyInitialFilter();
         }, 100);
     });
 
-    // Listen for subsequent hash changes (this part is for clicks, back/forward buttons)
     window.addEventListener('hashchange', () => {
         const slug = window.location.hash.replace(/^#\/?/, '') || 'everything';
-        console.log(`Hash changed. Applying filter for slug: ${slug}`);
         FilterMenu.applyFilterFromSlug(slug);
     });
-    // --- END: IMPROVED ROUTING LOGIC ---
-
-    console.log("All primary modules initialized.");
 });
 
 
-
 function attachPortfolioClickListeners() {
-    const portfolioItems = document.querySelectorAll('.portfolio-item');
-    portfolioItems.forEach(item => {
+    const portfolioItems = Array.from(document.querySelectorAll('.portfolio-item'));
+
+    // Build the items registry for the lightbox so prev/next navigation works.
+    // Only include items that have a real image (skip skeletons).
+    const lightboxItems = portfolioItems
+        .filter(item => item.dataset.imgSrc)
+        .map(item => ({
+            src: item.dataset.imgSrc,
+            lightboxSrc: item.dataset.lightboxImageSrc || item.dataset.imgSrc,
+            alt: item.dataset.altText || '',
+            type: item.dataset.lightboxType || 'expand',
+        }));
+
+    Lightbox.setItems(lightboxItems);
+
+    portfolioItems.forEach((item, i) => {
         if (item.dataset.listenerAttached === 'true') return;
 
-        item.addEventListener('click', function(e) {
-            if (e.target.closest('.portfolio-info')) {
-                return;
-            }
+        item.addEventListener('click', function (e) {
+            if (e.target.closest('.portfolio-info')) return;
 
-            const type = this.dataset.lightboxType;
-            const mainImageSrc = this.dataset.imgSrc;
-            const lightboxImageSrc = this.dataset.lightboxImageSrc;
+            const type = this.dataset.lightboxType || 'expand';
+            const mainSrc = this.dataset.imgSrc;
+            const lightboxSrc = this.dataset.lightboxImageSrc;
             const alt = this.dataset.altText;
 
-            let imageToOpen = '';
-            if (type === 'expand') {
-                imageToOpen = mainImageSrc;
-            } else if (type === 'seemore') {
-                imageToOpen = lightboxImageSrc;
-            } else {
-                imageToOpen = mainImageSrc;
-            }
+            const imageToOpen = type === 'seemore' ? lightboxSrc : mainSrc;
 
             if (imageToOpen) {
-                Lightbox.open(imageToOpen, alt, type);
-            } else {
-                console.warn("No image source found for lightbox for item:", this);
+                Lightbox.open(imageToOpen, alt, type, i);
             }
         });
+
         item.dataset.listenerAttached = 'true';
     });
-    console.log(`Attached click listeners to ${portfolioItems.length} portfolio items for lightbox.`);
 }
 
-
-// Additional event listeners for window load
-window.addEventListener('load', function() {
-    console.log("Window loaded - Finalizing initialization (if any needed)...");
+window.addEventListener('load', function () {
+    // Final hook for anything that needs to run after all resources are loaded
 });

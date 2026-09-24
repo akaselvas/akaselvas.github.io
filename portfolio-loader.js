@@ -1,45 +1,134 @@
 // portfolio-loader.js - Loading portfolio items from JSON
 
-const PortfolioLoader = (function() {
+import I18n from './i18n.js';
+
+const PortfolioLoader = (function () {
+
+    // --- Skeleton shimmer styles (injected once) ---
+    function injectSkeletonStyles() {
+        if (document.getElementById('skeleton-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'skeleton-styles';
+        style.textContent = `
+            @keyframes skeleton-shimmer {
+                0%   { background-position: -200% 0; }
+                100% { background-position:  200% 0; }
+            }
+            .skeleton-item {
+                pointer-events: none;
+                cursor: default;
+            }
+            .skeleton-bg {
+                background: linear-gradient(
+                    90deg,
+                    var(--color-background, #fdf8eb) 25%,
+                    color-mix(in srgb, var(--color-background, #fdf8eb) 70%, #888) 50%,
+                    var(--color-background, #fdf8eb) 75%
+                );
+                background-size: 200% 100%;
+                animation: skeleton-shimmer 1.5s infinite linear;
+                border-radius: 2px;
+            }
+            .skeleton-image-wrap {
+                width: 100%;
+                aspect-ratio: 4 / 3;
+            }
+            .skeleton-title {
+                height: 14px;
+                margin: 10px 0 6px;
+                width: 70%;
+            }
+            .skeleton-category {
+                height: 11px;
+                width: 40%;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Render N skeleton cards into the grid
+    function renderSkeletons(grid, count = 9) {
+        injectSkeletonStyles();
+        for (let i = 0; i < count; i++) {
+            const item = document.createElement('div');
+            item.className = 'isotope-item portfolio-item skeleton-item';
+            item.innerHTML = `
+                <div class="portfolio-image-container">
+                    <div class="portfolio-image skeleton-image-wrap skeleton-bg"></div>
+                </div>
+                <div class="portfolio-info" style="padding: 8px 0;">
+                    <div class="skeleton-title skeleton-bg"></div>
+                    <div class="skeleton-category skeleton-bg"></div>
+                </div>`;
+            grid.appendChild(item);
+        }
+    }
+
+    // Remove all skeleton cards
+    function removeSkeletons(grid) {
+        grid.querySelectorAll('.skeleton-item').forEach(el => el.remove());
+    }
+
+    // --- Styled error state ---
+    function renderError(grid, message) {
+        removeSkeletons(grid);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'portfolio-load-error';
+        wrapper.style.cssText = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--color-text, #333);
+            gap: 12px;
+        `;
+        wrapper.innerHTML = `
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                 stroke="var(--color-accent, #fd231a)" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p style="margin:0; font-size:1rem; font-weight:600;" data-i18n="portfolio.error.title">${message}</p>
+            <p style="margin:0; font-size:0.85rem; opacity:0.6;" data-i18n="portfolio.error.subtitle">
+                ${I18n.t('portfolio.error.subtitle')}
+            </p>`;
+        grid.appendChild(wrapper);
+    }
+
     // Private variables
     let portfolioGrid;
-    let loadingIndicator;
 
-    // Initialize module
     function init(isotopeManager) {
         portfolioGrid = document.querySelector('.portfolio-grid');
-        loadingIndicator = portfolioGrid ? portfolioGrid.querySelector('.loading-indicator') : null;
-        
-        if (!portfolioGrid) {
-            console.error("Portfolio grid container not found.");
-            return false;
-        }
-        
-        // Load portfolio items
+
+        if (!portfolioGrid) return false;
+
+        // Remove the plain text loading indicator and replace with skeletons
+        const loadingIndicator = portfolioGrid.querySelector('.loading-indicator');
+        if (loadingIndicator) loadingIndicator.remove();
+
+        renderSkeletons(portfolioGrid);
         loadPortfolioItems(isotopeManager);
         return true;
     }
 
-    // Load portfolio items from JSON
     async function loadPortfolioItems(isotopeManager) {
-        if (!portfolioGrid) {
-            console.error("Portfolio grid container not found.");
-            return;
-        }
+        if (!portfolioGrid) return;
 
-        const baseUrl = import.meta.env.BASE_URL; 
+        const baseUrl = import.meta.env.BASE_URL;
 
         try {
-            const response = await fetch(`${baseUrl}portfolio-data.json`)
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
+            const response = await fetch(`${baseUrl}portfolio-data.json`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
             let portfolioData = await response.json();
 
-            // ---- NEW: Adjust image paths in the fetched data ----
             portfolioData = portfolioData.map(item => {
-                // Only prepend if imgSrc is not empty and doesn't already start with http (external)
                 if (item.imgSrc && !item.imgSrc.startsWith('http') && !item.imgSrc.startsWith(baseUrl)) {
                     item.imgSrc = `${baseUrl}${item.imgSrc.startsWith('/') ? '' : '/'}${item.imgSrc}`;
                 }
@@ -48,35 +137,29 @@ const PortfolioLoader = (function() {
                 }
                 return item;
             });
-            // ---- END NEW ----
 
-            // Clear loading indicator if it exists
-            if (loadingIndicator) {
-                loadingIndicator.remove();
-            }
+            // Replace skeletons with real items
+            removeSkeletons(portfolioGrid);
 
-            // Generate HTML for each item
             portfolioData.forEach(item => {
                 const portfolioItemDiv = document.createElement('div');
                 portfolioItemDiv.className = `portfolio-item isotope-item ${item.categorySlug}`;
-                 // Store lightbox data on the element
-                portfolioItemDiv.dataset.lightboxType = item.lightboxType || 'expand'; // Default to expand
-                portfolioItemDiv.dataset.imgSrc = item.imgSrc; // Main image
-                portfolioItemDiv.dataset.lightboxImageSrc = item.lightboxImageSrc || item.imgSrc; // Lightbox image
+                portfolioItemDiv.dataset.lightboxType = item.lightboxType || 'expand';
+                portfolioItemDiv.dataset.imgSrc = item.imgSrc;
+                portfolioItemDiv.dataset.lightboxImageSrc = item.lightboxImageSrc || item.imgSrc;
                 portfolioItemDiv.dataset.altText = item.altText || item.title;
 
-                const portfolioImageContainer = document.createElement('div'); // New container for image and overlays
+                const portfolioImageContainer = document.createElement('div');
                 portfolioImageContainer.className = 'portfolio-image-container';
 
                 const portfolioImageDiv = document.createElement('div');
                 portfolioImageDiv.className = 'portfolio-image';
 
-                // Check if imgSrc exists and is not empty
                 if (item.imgSrc && item.imgSrc.trim() !== '') {
                     const img = document.createElement('img');
                     img.src = item.imgSrc;
                     img.alt = item.altText || item.title;
-                    img.loading = 'lazy'; // Add lazy loading
+                    img.loading = 'lazy';
                     portfolioImageDiv.appendChild(img);
                 } else {
                     const placeholderDiv = document.createElement('div');
@@ -86,9 +169,6 @@ const PortfolioLoader = (function() {
                     placeholderDiv.style.display = 'block';
                     portfolioImageDiv.appendChild(placeholderDiv);
                 }
-
-                // const portfolioOverlayDiv = document.createElement('div');
-                // portfolioOverlayDiv.className = 'portfolio-overlay';
 
                 const overlayContainer = document.createElement('div');
                 overlayContainer.className = 'portfolio-item-overlays';
@@ -101,7 +181,6 @@ const PortfolioLoader = (function() {
                 overlaySeeMore.className = 'portfolio-item-overlay overlay-see-more';
                 overlaySeeMore.textContent = 'See More';
 
-                // Show the correct overlay based on lightboxType
                 if (item.lightboxType === 'seemore') {
                     overlayExpand.style.display = 'none';
                 } else {
@@ -110,11 +189,8 @@ const PortfolioLoader = (function() {
 
                 overlayContainer.appendChild(overlayExpand);
                 overlayContainer.appendChild(overlaySeeMore);
-
                 portfolioImageContainer.appendChild(portfolioImageDiv);
-                portfolioImageContainer.appendChild(overlayContainer); 
-    
-                // Create a new div to hold the title and category below the image
+                portfolioImageContainer.appendChild(overlayContainer);
 
                 const h3 = document.createElement('h3');
                 h3.textContent = item.title;
@@ -123,59 +199,27 @@ const PortfolioLoader = (function() {
                 p.textContent = item.category;
 
                 const portfolioInfoDiv = document.createElement('div');
-                portfolioInfoDiv.className = 'portfolio-info'; // <-- Give it a new class
-
-                // Append the h3 and p to the new info div
+                portfolioInfoDiv.className = 'portfolio-info';
                 portfolioInfoDiv.appendChild(h3);
                 portfolioInfoDiv.appendChild(p);
-                
-                
-                portfolioItemDiv.appendChild(portfolioImageContainer);
-                // portfolioItemDiv.appendChild(portfolioImageDiv);
-                // portfolioItemDiv.appendChild(portfolioOverlayDiv);
-                portfolioItemDiv.appendChild(portfolioInfoDiv); 
 
+                portfolioItemDiv.appendChild(portfolioImageContainer);
+                portfolioItemDiv.appendChild(portfolioInfoDiv);
                 portfolioGrid.appendChild(portfolioItemDiv);
             });
 
-            console.log("PortfolioLoader: Portfolio items appended to DOM."); // Add log
-            
             window.dispatchEvent(new Event('portfolioItemsLoadedAndLightboxDataReady'));
-            
-            // Initialize Isotope after items are loaded
+
             if (isotopeManager) {
                 window.dispatchEvent(new Event('portfolioItemsLoaded'));
             }
 
         } catch (error) {
-            console.error("PortfolioLoader: Could not load portfolio data or process items:", error);
-
-            // Re-select loading indicator in case it was removed by successful fetch but error happened later
-            const currentLoadingIndicator = portfolioGrid.querySelector('.loading-indicator');
-            if (currentLoadingIndicator) {
-                currentLoadingIndicator.textContent = "Error loading portfolio items.";
-            } else {
-                 // If loading indicator was already removed (e.g., successful fetch but loop error),
-                 // add a new error message if the grid is empty (only grid-sizer might be there).
-                 // Check if there are actual portfolio items or just the sizer/old content
-                 if (portfolioGrid.querySelectorAll('.isotope-item').length === 0) {
-                     const errorDiv = document.createElement('div');
-                     errorDiv.style.color = 'red';
-                     errorDiv.style.textAlign = 'center';
-                     errorDiv.style.width = '100%';
-                     errorDiv.style.padding = '40px';
-                     errorDiv.textContent = "Error loading portfolio items.";
-                     portfolioGrid.appendChild(errorDiv);
-                 }
-            }
+            renderError(portfolioGrid, I18n.t('portfolio.error.title'));
         }
     }
 
-    // Public API
-    return {
-        init: init
-    };
+    return { init };
 })();
 
-// Export module
 export default PortfolioLoader;
