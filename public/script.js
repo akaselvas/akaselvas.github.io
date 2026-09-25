@@ -14,14 +14,12 @@ function init() {
 	var width = 460;
 	var height = 105;
 
-	const basePath = '/selvas';
-
 	// Carrossel com 4 imagens: alterna entre os pares (01/02) e (03/04) a cada loop
 	var images = [
-		`${basePath}/img/01.jpg`,
-		`${basePath}/img/02.jpg`,
-		`${basePath}/img/03.jpg`,
-		`${basePath}/img/04.jpg`
+		`/img/01.jpg`,
+		`/img/02.jpg`,
+		`/img/03.jpg`,
+		`/img/04.jpg`
 	];
 
 	var slide = new Slide(width, height, "out");
