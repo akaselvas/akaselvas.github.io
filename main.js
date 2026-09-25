@@ -21,7 +21,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // module reads text off the page or reads I18n.t() for dynamic markup.
     I18n.init();
 
-    setTimeout(() => HeroBackgroundManager.init(), 0);
+    // Adia a inicialização pesada do Three.js pra depois que o loader
+    // terminar, pra não competir por main thread com a animação CSS dele.
+    document.body.addEventListener('transitionend', function onLoaderGone(e) {
+        if (e.target.id === 'loader-wrapper' || e.propertyName === 'opacity') {
+            HeroBackgroundManager.init();
+            document.body.removeEventListener('transitionend', onLoaderGone);
+        }
+    }, { once: false });
+
+    // Fallback de segurança, caso o loader já tenha sido removido antes
+    // deste listener ser registrado (ex: conteúdo já em cache)
+    if (document.body.classList.contains('loading-done')) {
+        HeroBackgroundManager.init();
+    }
+
     HeaderScroll.init();
     TextAnimator.init();
     IsotopeManager.init();
