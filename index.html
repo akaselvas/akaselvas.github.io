@@ -515,8 +515,13 @@
 
                 if (loaderSpinner) loaderSpinner.style.opacity = '0';
 
+                // Garante que o navegador realmente pintou o estado inicial (scaleY(1))
+                // antes de aplicar o scaleY(0) — um único rAF não garante isso quando
+                // tudo carrega rápido demais (ex: navegação com cache já quente).
                 requestAnimationFrame(() => {
-                    loaderBackground.style.transform = 'scaleY(0)';
+                    requestAnimationFrame(() => {
+                        loaderBackground.style.transform = 'scaleY(0)';
+                    });
                 });
 
                 setTimeout(() => {
