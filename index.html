@@ -49,7 +49,7 @@
             background-color: var(--color-accent);
             transform-origin: top;
             transform: scaleY(1);
-            transition: transform 1.8s cubic-bezier(0.65, 0.05, 0.36, 1);
+            transition: transform 0.7s cubic-bezier(0.65, 0.05, 0.36, 1);
         }
 
         .loader-logo {
@@ -455,8 +455,6 @@
     <!-- Inline Loader Control Script (runs after DOM is ready) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            console.log("Loader: DOMContentLoaded");
-
             const loaderWrapper = document.getElementById('loader-wrapper');
             const loaderBackground = document.getElementById('loader-background');
             const loaderLogoBg = document.getElementById('loader-logo-bg');
@@ -464,94 +462,62 @@
             const body = document.body;
 
             if (!loaderWrapper || !loaderBackground || !loaderLogoBg || !loaderLogoAccent) {
-                console.error("Loader elements not found!");
                 if (body) body.classList.add('loading-done');
                 return;
             }
 
-            let areLoaderAnimationsFinished = false;
-            let isCriticalContentLoaded = false;
-            let pageLoadInitiatedTime = Date.now();
-
-            // Durations from your CSS/previous logic
-            const backgroundShrinkDuration = 1800;
+            let finished = false;
             const wrapperFadeOutDuration = 600;
 
-            function attemptToFinalizeLoading() {
-                if (areLoaderAnimationsFinished && isCriticalContentLoaded) {
-                    console.log("Loader: Conditions met. Finalizing.");
-                    body.classList.add('loading-done');
-
-                    setTimeout(() => {
-                        if (loaderWrapper) {
-                            loaderWrapper.remove();
-                            console.log("Loader: Wrapper removed from DOM.");
-                        }
-                    }, wrapperFadeOutDuration);
-                } else {
-                    console.log(`Loader: Conditions not yet met. 
-                    LoaderAnimationsFinished: ${areLoaderAnimationsFinished}, 
-                    CriticalContentLoaded: ${isCriticalContentLoaded}`);
-                }
+            function setProgress(scale) {
+                loaderBackground.style.transform = `scaleY(${scale})`;
             }
 
-            // --- Start Loader's Internal Animations Immediately ---
-            requestAnimationFrame(() => {
-                loaderBackground.style.transform = 'scaleY(0)';
-                console.log("Loader: Background shrink initiated.");
-            });
+            function finishLoading() {
+                if (finished) return;
+                finished = true;
+
+                // Último encolhimento: só acontece aqui, então nunca "acaba" antes da hora
+                setProgress(0);
+                loaderLogoAccent.style.opacity = '0';
+
+                setTimeout(() => {
+                    body.classList.add('loading-done');
+                    setTimeout(() => loaderWrapper.remove(), wrapperFadeOutDuration);
+                }, 700); // espera o encolhimento final terminar antes de sumir com o wrapper
+            }
+
+            // --- Estágio 1: assim que o DOM parseou, já mostra algum progresso ---
+            requestAnimationFrame(() => setProgress(0.65));
 
             setTimeout(() => {
                 loaderLogoBg.style.opacity = '0';
                 loaderLogoAccent.style.opacity = '1';
-                console.log("Loader: Logo transition initiated (bg -> accent).");
-            }, 150); // Slight delay for logo swap
+            }, 150);
 
-            setTimeout(() => {
-                loaderLogoAccent.style.opacity = '0'; // Fade out accent logo
-                console.log("Loader: Accent logo fade out initiated.");
-                areLoaderAnimationsFinished = true;
-                console.log("Loader: Internal visual animations presumed complete.");
-                attemptToFinalizeLoading();
-            }, backgroundShrinkDuration - 300);
-
-            setTimeout(() => {
-                areLoaderAnimationsFinished = true;
-                console.log("Loader: Internal visual animations fully complete.");
-                attemptToFinalizeLoading();
-            }, backgroundShrinkDuration + 100); // Give a small buffer after shrink
-
-            // --- Listen for Critical Content Readiness ---
-            window.addEventListener('isotopeFirstLayoutDone', () => {
-                console.log("Loader: 'isotopeFirstLayoutDone' event received.");
-                isCriticalContentLoaded = true;
-                attemptToFinalizeLoading();
-            });
-
-            // This ensures the loader eventually hides even if 'isotopeFirstLayoutDone' fails
+            // --- Estágio 2: quando janelas/imagens/fontes/scripts externos carregaram ---
             window.addEventListener('load', () => {
-                console.log("Loader: window.load event fired.");
-                const maxWaitAfterWindowLoad = 3000;
+                setProgress(0.25);
 
+                // Rede de segurança: se o isotope nunca avisar que terminou, força depois de 3s
                 setTimeout(() => {
-                    if (!isCriticalContentLoaded) {
-                        console.warn("Loader: 'isotopeFirstLayoutDone' not received within timeout after window.load. Forcing content ready state.");
-                        isCriticalContentLoaded = true;
-                        attemptToFinalizeLoading();
+                    if (!finished) {
+                        console.warn('Loader: isotopeFirstLayoutDone não chegou a tempo, forçando.');
+                        finishLoading();
                     }
-                }, maxWaitAfterWindowLoad);
+                }, 3000);
             });
 
-            const absoluteMaxWait = 10000;
-            setTimeout(() => {
-                if (!body.classList.contains('loading-done')) {
-                    console.warn("Loader: Absolute maximum wait time reached. Forcing loader hide.");
-                    areLoaderAnimationsFinished = true;
-                    isCriticalContentLoaded = true;
-                    attemptToFinalizeLoading();
-                }
-            }, absoluteMaxWait);
+            // --- Estágio 3 (real): grid do portfólio pronto de verdade ---
+            window.addEventListener('isotopeFirstLayoutDone', finishLoading);
 
+            // Limite absoluto: nunca deixa o usuário preso, aconteça o que acontecer
+            setTimeout(() => {
+                if (!finished) {
+                    console.warn('Loader: tempo máximo absoluto atingido, forçando.');
+                    finishLoading();
+                }
+            }, 10000);
         });
     </script>
 
