@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // module reads text off the page or reads I18n.t() for dynamic markup.
     I18n.init();
 
-    HeroBackgroundManager.init();
+    setTimeout(() => HeroBackgroundManager.init(), 0);
     HeaderScroll.init();
     TextAnimator.init();
     IsotopeManager.init();
