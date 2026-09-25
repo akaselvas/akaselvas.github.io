@@ -489,6 +489,8 @@
     <!-- Inline Loader Control Script (runs after DOM is ready) -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('[loader] DOMContentLoaded @', performance.now().toFixed(0));
+
             const loaderWrapper = document.getElementById('loader-wrapper');
             const loaderBackground = document.getElementById('loader-background');
             const loaderLogoBg = document.getElementById('loader-logo-bg');
@@ -507,19 +509,19 @@
             const backgroundShrinkDuration = 1800;
             const wrapperFadeOutDuration = 600;
 
-            // Essa é a animação original, do jeito que era, só que agora ela
-            // só é CHAMADA quando o conteúdo já está pronto de verdade.
             function playRevealAnimation() {
-                if (animationStarted) return;
+                console.log('[loader] playRevealAnimation called @', performance.now().toFixed(0));
+                if (animationStarted) {
+                    console.log('[loader] already started, ignoring duplicate call');
+                    return;
+                }
                 animationStarted = true;
 
                 if (loaderSpinner) loaderSpinner.style.opacity = '0';
 
-                // Garante que o navegador realmente pintou o estado inicial (scaleY(1))
-                // antes de aplicar o scaleY(0) — um único rAF não garante isso quando
-                // tudo carrega rápido demais (ex: navegação com cache já quente).
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
+                        console.log('[loader] applying scaleY(0) @', performance.now().toFixed(0));
                         loaderBackground.style.transform = 'scaleY(0)';
                     });
                 });
@@ -534,30 +536,34 @@
                 }, backgroundShrinkDuration - 300);
 
                 setTimeout(() => {
+                    console.log('[loader] adding loading-done @', performance.now().toFixed(0));
                     body.classList.add('loading-done');
                     setTimeout(() => loaderWrapper.remove(), wrapperFadeOutDuration);
                 }, backgroundShrinkDuration + 100);
             }
 
-            // Sinal real de "pronto"
             window.addEventListener('isotopeFirstLayoutDone', () => {
+                console.log('[loader] isotopeFirstLayoutDone @', performance.now().toFixed(0));
                 isCriticalContentLoaded = true;
                 playRevealAnimation();
             });
 
-            // Rede de segurança 1: window.load + 3s, caso o evento acima falhe
             window.addEventListener('load', () => {
+                console.log('[loader] window.load @', performance.now().toFixed(0));
                 setTimeout(() => {
                     if (!isCriticalContentLoaded) {
+                        console.log('[loader] forcing via window.load fallback');
                         isCriticalContentLoaded = true;
                         playRevealAnimation();
                     }
                 }, 3000);
             });
 
-            // Rede de segurança 2: limite absoluto, nunca trava o usuário
             setTimeout(() => {
-                if (!animationStarted) playRevealAnimation();
+                if (!animationStarted) {
+                    console.log('[loader] forcing via absolute max wait');
+                    playRevealAnimation();
+                }
             }, 10000);
         });
     </script>
