@@ -1,5 +1,3 @@
-window.onload = init;
-
 function init() {
 	var root = new THREERoot({
 		createCameraControls: !true,
@@ -381,3 +379,5 @@ var utils = {
 		return b + ease.getRatio(t / d) * c;
 	}
 };
+
+init();
