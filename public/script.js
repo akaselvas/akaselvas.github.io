@@ -1,4 +1,4 @@
-init();
+window.onload = init;
 
 function init() {
 	var root = new THREERoot({
