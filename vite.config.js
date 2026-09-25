@@ -2,7 +2,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig(({ command }) => ({
-  base: '/selvas/',
+  base: '/',
   build: {
     outDir: 'docs',
   },
