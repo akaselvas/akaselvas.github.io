@@ -62,6 +62,8 @@ const qaTranslations = {
                 status: 'Status',
                 symptom: 'Symptom',
                 threshold: 'Threshold',
+                trigger: 'Trigger',
+                corpus: 'Corpus impact',
             },
             arcana: {
                 title: 'ArcanaFutura QA Audit',
@@ -934,6 +936,15 @@ const qaTranslations = {
                         'incomplete picture. The evaluation suite ensured the AI was telling the truth, while ' +
                         'the exploratory agent caught UI and data pipeline bugs that the AI layer could not see. ' +
                         'Both approaches were strictly necessary to ensure the system\'s production readiness.',
+                    auditSuiteHead: 'Auditing the eval suite\'s own blind spots',
+                    auditSuiteBody:
+                        'A green CI badge doesn\'t mean the tests ran, it means nothing failed, and those ' +
+                        'aren\'t the same thing. Three patterns in the original suite made that gap real: ' +
+                        '1) <code>pytest.skip()</code> on a connection error looked identical to a passing test ' +
+                        'in the job summary, 2) a latency test converted any slow run into <code>xfail</code> on ' +
+                        'the assumption it was "CI runner variance," which would hide a genuine regression ' + 
+                        'forever, and 3) the nightly full-eval job explicitly excluded the prompt regression file ' +
+                        'with <code>--ignore</code>, so the "complete" run never actually ran it. Fixed all three',
                 },
                 findings: {
                     f1: {
@@ -1016,6 +1027,44 @@ const qaTranslations = {
                             'for instance, a malicious instruction disguised as climate research to force the AI to bypass its rules. That attack vector requires ' +
                             'dedicated Red Teaming (offensive security). This limitation was explicitly documented in the QA report ' +
                             'as a known gap and an accepted risk for the current version.',
+                    },
+                    f5: {
+                        title: '5. Production Debugging: <strong>Two Bugs Hiding Behind One Wrong Answer</strong>',
+                        trigger: 'A single UI question returning a false refusal',
+                        questions: '33 of 86 flagged, narrowed to 2 real gaps',
+                        corpus: '802 of 2,203 chunks — 36% — were junk',
+                        p1:
+                            '<strong>What triggered it:</strong> a UI-suggested question ' +
+                            'kept returning  that it did not find the information in the provided excerpts, ' +
+                            'even though the report covers exactly this. ' +
+                            'The golden set never caught it, because none of its 30 questions matched ' +
+                            'the phrasing the UI actually suggests to users.',
+                        p2:
+                            '<strong>Isolating the layer:</strong> the first move was ruling out whether this ' +
+                            'was a retrieval problem or a generation problem, two failure modes that look ' +
+                            'identical from the chat window. A small script called <code>/search</code> and ' +
+                            '<code>/chat</code> for the same 86 questions (the full UI-suggested set plus the ' +
+                            'golden set) and logged both. When chunks came back but the chat answer still ' +
+                            'refused, the bug had to be in the prompt, not the vector store.',
+                        p3:
+                            '<strong>Bug 1, scope drift in the prompt:</strong> the system prompt\'s topic ' +
+                            'list only named agriculture. The corpus actually covers six sectors (energy, ' +
+                            'water resources, transport, coast, urban drainage) but the model read that list ' +
+                            'as exhaustive and redirected users to "this is out of scope" for anything outside ' +
+                            'farming, even with the right chunks sitting in context. 33 of 86 questions failed this way.',
+                        p4:
+                            '<strong>Bug 2, junk chunks acting as similarity attractors:</strong> a separate ' +
+                            'corpus-wide scan (unique-word ratio, digit density, boilerplate detection) ' +
+                            'found that 802 of 2,203 embedded chunks were noise: raw table dumps that ' +
+                            'survived PDF extraction as strings like <code>"BAIXO 0 BAIXO BAIXO BAIXO..."</code>, ' +
+                            'and repeated institutional letterhead. These scored suspiciously high cosine ' +
+                            'similarity against almost any question and kept beating the chunk that actually answered it.',
+                        p5:
+                            '<strong>Fix and verification:</strong> rewrote the scope section to name every ' +
+                            'sector, deleted the 802 chunks after a manual count check and reran the same ' +
+                            '86-question set. Flagged cases dropped from 33 to 2, both genuine corpus gaps ' +
+                            '(one question referenced a river basin the report never covers).',
+                        label: 'Diagnostic: telling retrieval failure apart from prompt failure:',
                     },
                 },
                 diagram1: {
@@ -1793,6 +1842,8 @@ const qaTranslations = {
                 status: 'Status',
                 symptom: 'Sintoma',
                 threshold: 'Limite',
+                trigger: 'Gatilho',
+                corpus: 'Impacto no corpus',
             },
             arcana: {
                 title: 'Auditoria de QA do ArcanaFutura',
@@ -2665,6 +2716,17 @@ const qaTranslations = {
                         'incompleto. A suíte de avaliação garantiu que a IA estava falando a verdade, enquanto ' +
                         'o agente exploratório encontrou bugs de UI e pipeline de dados que a camada de IA não enxergava. ' +
                         'Ambas as abordagens foram estritamente necessárias para garantir a prontidão do sistema para produção.',
+                    auditSuiteHead: 'Auditando os pontos cegos da própria suíte de avaliação',
+                    auditSuiteBody:
+                        'Um badge verde no CI não significa que os testes rodaram, significa que nada ' +
+                        'falhou, essas duas coisas não são a mesma. Três padrões na suíte original ' +
+                        'deixavam essa diferença passar despercebida: 1) um <code>pytest.skip()</code> em erro ' +
+                        'de conexão aparecia idêntico a um teste aprovado no resumo do job, 2) um teste de ' +
+                        'latência convertia qualquer execução lenta em <code>xfail</code>, assumindo que era ' +
+                        '"variância do runner do CI", o que esconderia uma regressão real pra sempre, e 3) o ' +
+                        'job de avaliação completa excluía explicitamente o arquivo de regressão de ' +
+                        'prompt com <code>--ignore</code>, então a execução "completa" nunca rodava esse ' +
+                        'teste de fato. Os três foram corrigidos.',
                 },
                 findings: {
                     f1: {
@@ -2747,6 +2809,48 @@ const qaTranslations = {
                             'por exemplo, uma instrução maliciosa disfarçada de pesquisa climática para forçar a IA a ignorar suas regras. Esse tipo de ataque exige testes ' +
                             'dedicados de Red Teaming (segurança ofensiva). Essa limitação foi explicitamente documentada no relatório '+
                             'de QA como uma lacuna conhecida e um risco aceito para a versão atual.',
+                    },
+                    f5: {
+                        title: '5. Debugging em Produção: <strong>Dois bugs escondidos em resposta errada</strong>',
+                        trigger: 'Uma única pergunta da UI voltando com recusa indevida',
+                        questions: '33 de 86 sinalizadas, reduzidas a 2 gaps reais',
+                        corpus: '802 de 2.203 chunks, ou 36%, eram lixo',
+                        p1:
+                            '<strong>O que disparou o problema:</strong> uma pergunta sugerida na UI (Qual ' +
+                            'cultura tem maior potencial de adaptação ao aquecimento?) voltava sempre com ' +
+                            '"Não encontrei essa informação nos trechos fornecidos", mesmo o relatório ' +
+                            'cobrindo exatamente isso. O golden set não pegou esse caso porque nenhuma ' +
+                            'das 30 perguntas dele batia com a fraseologia que a própria UI sugere ao usuário.',
+                        p2:
+                            '<strong>Isolando a camada:</strong> o primeiro passo foi descartar se era ' +
+                            'problema de retrieval ou de geração, dois modos de falha que parecem idênticos ' +
+                            'do lado do chat. Um script pequeno chamava <code>/search</code> e <code>/chat</code> ' +
+                            'pras mesmas 86 perguntas (o conjunto sugerido na UI inteiro mais o golden set) e ' +
+                            'logava os dois lados. Quando os chunks voltavam certos mas o chat ainda recusava, ' +
+                            'indicava que o bug estaria no prompt e não no banco vetorial.',
+                        p3:
+                            '<strong>Bug 1, deriva de escopo no prompt:</strong> a lista de temas do system ' +
+                            'prompt só citava agricultura. O corpus na verdade cobre seis setores (energia, ' +
+                            'recursos hídricos, transporte, costa, drenagem urbana) mas o modelo lia aquela ' +
+                            'lista como exaustiva e redirecionava qualquer coisa fora de agro como "fora do ' +
+                            'escopo", mesmo com os chunks certos ali no contexto. 33 das 86 perguntas ' +
+                            'falhavam por esse motivo.',
+                        p4:
+                            '<strong>Bug 2, chunks de lixo agindo como atratores de similaridade:</strong> uma ' +
+                            'varredura separada no corpus inteiro (proporção de palavras únicas, densidade ' +
+                            'de dígitos, detecção de boilerplate) achou que 802 dos 2.203 chunks embedados ' +
+                            'eram ruído: tabelas cruas que sobreviveram à extração do PDF como strings tipo ' +
+                            '<code>"BAIXO 0 BAIXO BAIXO BAIXO..."</code>, além de cabeçalho institucional ' +
+                            'repetido. Esses chunks pontuavam uma similaridade de cosseno suspeitosamente ' +
+                            'alta contra quase qualquer pergunta e ficavam na frente do chunk que de fato ' +
+                            'respondia.',
+                        p5:
+                            '<strong>Correção e verificação:</strong> a seção de escopo foi reescrita citando ' +
+                            'todos os setores, os 802 chunks foram apagados do bando de dados no Supabase depois de uma conferência manual ' +
+                            'de contagem e o mesmo conjunto de 86 perguntas rodou de novo. Os casos ' +
+                            'sinalizados caíram de 33 pra 2 e os dois que sobraram eram gaps reais do corpus ' +
+                            '(uma pergunta citava uma bacia hidrográfica que o relatório nunca cobre)',
+                        label: 'Diagnóstico: separando falha de retrieval de falha de prompt:',
                     },
                 },
                 diagram1: {

@@ -2496,6 +2496,48 @@
                         </div>
                     </div>
 
+                    <!-- PRODUCTION DEBUGGING -->
+                    <div class="accordion-item">
+                        <div class="accordion-header">
+                            <h2 data-i18n-html="qa.brasil2040.findings.f5.title">5. Production Debugging — <strong>Two bugs hiding behind one wrong answer</strong></h2>
+                            <span class="plus" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" class="plus-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </span>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="bug-meta">
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key" data-i18n="qa.bugMetaKey.trigger">Trigger</span>
+                                    <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f5.trigger">A single UI question returning a false refusal</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key" data-i18n="qa.bugMetaKey.questions">Questions affected</span>
+                                    <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f5.questions">33 of 86 flagged, narrowed to 2 real gaps</span>
+                                </div>
+                                <div class="bug-meta-item">
+                                    <span class="bug-meta-key" data-i18n="qa.bugMetaKey.corpus">Corpus impact</span>
+                                    <span class="bug-meta-value severity-critical" data-i18n="qa.brasil2040.findings.f5.corpus">802 of 2,203 chunks — 36% — were junk</span>
+                                </div>
+                            </div>
+                            <div class="bug-body">
+                                <p data-i18n-html="qa.brasil2040.findings.f5.p1"><strong>What triggered it:</strong> a UI-suggested question — "Qual cultura tem maior potencial de adaptação ao aquecimento?" — kept returning "Não encontrei essa informação nos trechos fornecidos," even though the report covers exactly this. The golden set never caught it because none of its 30 questions matched the phrasing the UI actually suggests to users.</p>
+                                <p data-i18n-html="qa.brasil2040.findings.f5.p2"><strong>Isolating the layer:</strong> the first move was ruling out whether this was a retrieval problem or a generation problem — two failure modes that look identical from the chat window. A small script called <code>/search</code> and <code>/chat</code> for the same 86 questions (the full UI-suggested set plus the golden set) and logged both. When chunks came back but the chat answer still refused, the bug had to be in the prompt, not the vector store.</p>
+                                <p data-i18n-html="qa.brasil2040.findings.f5.p3"><strong>Bug 1 — scope drift in the prompt:</strong> the SYSTEM_PROMPT's topic list only named agriculture. The corpus actually covers six sectors — energy, water resources, transport, coast, urban drainage — but the model read that list as exhaustive and redirected users to "this is out of scope" for anything outside farming, even with the right chunks sitting in context. 33 of 86 questions failed this way.</p>
+                                <p data-i18n-html="qa.brasil2040.findings.f5.p4"><strong>Bug 2 — junk chunks acting as similarity attractors:</strong> a separate corpus-wide scan — unique-word ratio, digit density, boilerplate detection — found that 802 of 2,203 embedded chunks were noise: raw table dumps that survived PDF extraction as strings like <code>"BAIXO 0 BAIXO BAIXO BAIXO..."</code>, and repeated institutional letterhead. These scored suspiciously high cosine similarity against almost any question and kept beating the chunk that actually answered it.</p>
+                                <p data-i18n-html="qa.brasil2040.findings.f5.p5"><strong>Fix and verification:</strong> rewrote the scope section to name every sector, deleted the 802 chunks after a manual count check, and reran the same 86-question set. Flagged cases dropped from 33 to 2 — both genuine corpus gaps (one question referenced a river basin the report never covers), not bugs.</p>
+                                <span class="bug-label" data-i18n="qa.brasil2040.findings.f5.label">Diagnostic — telling retrieval failure apart from prompt failure</span>
+                                <div class="qa-code-block">
+                    <pre>chunks = search(question)          <span class="tok-cm"># hits /search directly</span>
+                    answer  = chat(question)           <span class="tok-cm"># hits /chat (search + Gemini)</span>
+
+                    <span class="tok-kw">if</span> chunks <span class="tok-kw">and</span> <span class="tok-st">"Não encontrei"</span> <span class="tok-kw">in</span> answer:
+                        <span class="tok-cm"># real chunks came back, model still refused</span>
+                        <span class="tok-cm"># -&gt; bug is in SYSTEM_PROMPT, not retrieval</span></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -2710,6 +2752,11 @@
                     <p class="qa-callout-body" data-i18n-html="qa.brasil2040.sections.threeLayersBody">
                         <strong>Unit / eval suite</strong> owns AI correctness: retrieval precision, faithfulness, regression gates. <strong>Deterministic E2E</strong> (Playwright) owns critical happy paths that must not break on deploy. <strong>Exploratory testing</strong> — human or agent — owns discovery: the municipality counter drift, the silent failure on edge-case inputs, the chat session boundary no test was written to check. Testing with only one layer would have produced a dangerously incomplete picture. The eval suite says the AI is telling the truth. The agent found bugs the AI layer was blind to. Both were necessary.
                     </p>
+                </div>
+
+                <div class="qa-callout" style="margin-top: 1.5rem;">
+                    <p class="qa-callout-head" data-i18n="qa.brasil2040.sections.auditSuiteHead">Auditing the eval suite's own blind spots</p>
+                    <p class="qa-callout-body" data-i18n-html="qa.brasil2040.sections.auditSuiteBody">A green CI badge doesn't mean the tests ran — it means nothing failed, and those aren't the same thing. Three patterns in the original suite made that gap real: <code>pytest.skip()</code> on a connection error looked identical to a passing test in the job summary; a latency test converted any slow run into <code>xfail</code> on the assumption it was "CI runner variance," which would hide a genuine regression forever; and the nightly full-eval job explicitly excluded the prompt regression file with <code>--ignore</code>, so the "complete" run never actually ran it. Fixed all three — skips became hard failures, latency now takes the median of three runs before asserting, and the ignore flag is gone. None of this changes what the AI answers. It changes whether the pipeline can be trusted to notice when it stops.</p>
                 </div>
 
             </div>
