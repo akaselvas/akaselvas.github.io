@@ -16,9 +16,7 @@ import ContactForm from './contact-form.js';
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // I18n must init first: it sets the correct-language text on every
-    // data-i18n element and builds the language switcher before any other
-    // module reads text off the page or reads I18n.t() for dynamic markup.
+    // I18n must init first
     I18n.init();
 
     HeroBackgroundManager.init();

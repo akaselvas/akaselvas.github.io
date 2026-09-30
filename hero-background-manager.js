@@ -1,6 +1,6 @@
 // hero-background-manager.js
 const HeroBackgroundManager = (() => {
-    const MOBILE_BREAKPOINT = 576; // px — matches the CSS media query breakpoint
+    const MOBILE_BREAKPOINT = 576; // px 
     const CAROUSEL_INTERVAL_MS = 4000; // 4 seconds per slide
 
     let threeJsScriptsLoaded = false;
@@ -8,16 +8,11 @@ const HeroBackgroundManager = (() => {
 
     const baseUrl = import.meta.env.BASE_URL;
 
-    // ⚠️  bas.js is loaded from an unofficial S3 CDN
-    // (s3-us-west-2.amazonaws.com/s.cdpn.io) that can disappear without notice.
-    // TODO: vendor this file locally under /public/vendor/ and update the path.
-    // OrbitControls-2.js was removed: script.js creates the scene with
-    // createCameraControls:false, so the orbit controls were never used —
-    // that request was dead weight.
     const threeJsScriptSources = [
         'https://cdnjs.cloudflare.com/ajax/libs/three.js/r77/three.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.4/TweenMax.min.js',
-        'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/bas.js',
+        // 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/bas.js',
+        `${baseUrl}bas.js`,
         `${baseUrl}script.js`,
     ];
 

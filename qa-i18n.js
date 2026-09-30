@@ -1771,22 +1771,27 @@ const qaTranslations = {
                 title: 'about me',
                 heading: 'From Design to Quality Assurance',
                 p1:
-                    'My background is in design and visual communication — which trained me to notice when ' +
-                    "something looks right but isn't, and to ask whether an interface actually serves the person " +
-                    'using it before asking whether it technically works. That instinct carries directly into QA: ' +
-                    "bugs are rarely announced by an error message. More often they're a number on screen that " +
-                    "doesn't quite match, a locator that quietly finds two elements instead of one, or a global " +
-                    "variable silently holding onto data it shouldn't.",
+                    'My background is in design and visual communication ' +
+                    'which forced me to develop a keen eye for what is out ' +
+                    'of place. When I moved into software testing I realized ' +
+                    'that investigating software requires the same instinct ' +
+                    'for inconsistencies since a system rarely breaks with a ' +
+                    'giant alert on the screen. The error is almost always ' +
+                    'silent: a subtle layout break that deviates from the ' +
+                    'original specification, a DOM selector that finds the ' +
+                    'wrong element or a session state that survives logout.',
                 p2:
-                    "Completing Harvard's CS50 gave me the computer science foundation to move past the DOM and " +
-                    'into the layers underneath — session state, concurrency, embeddings, CI pipelines — the places ' +
-                    "where a beautiful UI can still hide a fragile, insecure, or unreliable backend. Across the " +
-                    "three case studies on this page I've applied a designer's attention to detail alongside an " +
-                    "SDET's paranoia for edge cases: a 340-point security and infrastructure audit on a Flask " +
-                    'application, a hallucination and faithfulness evaluation suite for a RAG-based AI, and a ' +
-                    '161-test Playwright regression suite with its own CI pipeline built from the ground up. ' +
-                    'Different stacks, same underlying discipline — assume nothing works until there\'s a test ' +
-                    'proving it does.',
+                    'Completing Harvard\'s CS50 gave me the computer science ' +
+                    'foundation and technical mindset to navigate different ' +
+                    'layers of development from data structures and memory ' +
+                    'management to security, systems architecture, databases ' +
+                    'and concurrency. It is in these lower layers that a ' +
+                    'pretty interface usually hides severe architecture, ' +
+                    'security or data persistence flaws. What I bring to QA ' +
+                    'is exactly this combination: a designer\'s attention to ' +
+                    'detail with a tester\'s technical distrust. If you are ' +
+                    'building a team that takes quality seriously before ' +
+                    'deployment feel free to explore my work or get in touch.',
             },
             footer: {
                 line1: 'QA portfolio of <span class="highlighted">Fabio Alves</span>',
@@ -3559,22 +3564,21 @@ const qaTranslations = {
                 title: 'sobre mim',
                 heading: 'Do Design ao Quality Assurance',
                 p1:
-                    'Minha formação é em design e comunicação visual — o que me treinou a perceber quando algo ' +
-                    'parece certo, mas não é, e a questionar se uma interface realmente serve a pessoa que a usa ' +
-                    'antes de perguntar se ela funciona tecnicamente. Esse instinto se aplica diretamente ao QA: ' +
-                    'bugs raramente vêm anunciados por uma mensagem de erro. Na maioria das vezes são um número na ' +
-                    'tela que não bate direito, um localizador que silenciosamente encontra dois elementos em vez ' +
-                    'de um, ou uma variável global segurando dados que não deveria.',
+                    'Minha formação é em design e comunicação visual, o que me forçou a desenvolver um ' +
+                    'olhar clínico para o que está fora do lugar. Quando migrei para a área de testes percebi que investigar software ' +
+                    'exige o mesmo faro para inconsistências, já que um sistema raramente quebra com um ' +
+                    'alerta gigante na tela. O erro quase sempre é silencioso: uma quebra sutil no layout que ' +
+                    'foge da especificação original, um seletor no DOM ' +
+                    'que encontra o elemento errado ou um estado de sessão que sobrevive ao logout.',
                 p2:
-                    'Concluir o CS50 de Harvard me deu a base de ciência da computação para ir além do DOM e chegar ' +
-                    'às camadas de baixo — estado de sessão, concorrência, embeddings, pipelines de CI — os lugares ' +
-                    'onde uma interface bonita ainda pode esconder um backend frágil, inseguro ou pouco confiável. ' +
-                    'Nos três estudos de caso desta página apliquei a atenção aos detalhes de um designer junto com ' +
-                    'a paranoia de um SDET para casos extremos: uma auditoria de segurança e infraestrutura de 340 ' +
-                    'pontos em uma aplicação Flask, uma suíte de avaliação de alucinação e fidelidade para uma IA ' +
-                    'baseada em RAG, e uma suíte de regressão Playwright de 161 testes com pipeline de CI próprio, ' +
-                    'construído do zero. Stacks diferentes, mesma disciplina de fundo — não assumir que nada ' +
-                    'funciona até que um teste prove que funciona.',
+                    'Concluir o curso CS50 de Harvard me deu a base de ciência da computação e o ' +
+                    'pensamento tecnico para transitar por diferentes camadas do desenvolvimento ' +
+                    'desde estruturas de dados e gerenciamento de memória até a segurança, arquitetura de sistemas, bancos de dados e concorrência. ' +
+                    'É nessas camadas de baixo que uma interface bonita costuma ' +
+                    'esconder falhas graves de arquitetura, segurança ou persistência de dados. ' +
+                    'O que trago para o QA é exatamente essa combinação: a atenção aos ' +
+                    ' detalhes de um designer com a desconfiança técnica de um tester. Se você está montando um time que leva a ' +
+                    'qualidade a sério antes do deploy fique à vontade para explorar meu trabalho ou entrar em contato. ',
             },
             footer: {
                 line1: 'Portfólio de QA de <span class="highlighted">Fabio Alves</span>',

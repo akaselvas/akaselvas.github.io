@@ -3,9 +3,7 @@
 import I18n from './i18n.js';
 
 const FilterMenu = (function () {
-    // Only the CSS selector lives here — the display name and hero copy for
-    // each category are translated text and live in i18n.js instead, keyed
-    // by the same slug (filter.category.<slug> / filter.hero.<slug>).
+
     const categoryFilters = {
         'everything': '*',
         'web-design': '.web-design',

@@ -3,9 +3,6 @@
 // Central translation module for the whole site.
 // -------------------------------------------------------------
 // EVERYTHING text-related lives in the `translations` object below.
-// If you ever need to change wording (in English OR Portuguese),
-// or add a new language, this is the ONLY file you need to touch.
-//
 // How it works:
 //   1. Any element in index.html tagged with:
 //        data-i18n="some.key"          -> sets el.textContent
@@ -18,7 +15,6 @@
 //        data-i18n-list="some.key"     -> maps an array of strings from the
 //                                          dictionary onto the element's
 //                                          existing <li> children, in order
-//      gets auto-translated whenever the language changes.
 //   2. Other modules (filter-menu.js, contact-form.js, isotope-manager.js,
 //      portfolio-loader.js) that build markup dynamically simply call
 //      `I18n.t('some.key')` instead of hardcoding English strings.
@@ -28,17 +24,10 @@
 // -------------------------------------------------------------
 
 // --- Language switcher visual style -----------------------------------
-// Change this ONE constant to pick which look the EN/PT switcher uses.
-// All three are intentionally quieter than the main nav links (smaller,
-// lighter weight, muted color) so they read as a secondary control
-// instead of competing with DESIGN / ABOUT / CONTACT.
-//
-//   'text'    -> tiny lowercase "en / pt" text, active one underlined
-//   'pill'    -> small rounded segmented toggle, muted fill on the active side
-//   'globe'   -> a small globe icon that expands into en/pt text on hover/focus
-//
-const SWITCHER_STYLE = 'pill';
+//   'text', 'pill' or 'globe'
 // -------------------------------------------------------------------
+
+const SWITCHER_STYLE = 'pill';
 
 const STORAGE_KEY = 'site-lang';
 const SUPPORTED_LANGS = ['en', 'pt'];
@@ -569,10 +558,6 @@ const I18n = (() => {
 
         injectSwitcherStyles();
 
-        // Whatever was the last <li> (CONTACT) may rely on being :last-child
-        // to hide its trailing separator via the site's own CSS. Since our
-        // switcher is now appended after it, that separator can reappear —
-        // so we explicitly strip it here.
         const previousLastItem = navList.querySelector('li:last-child');
         if (previousLastItem) {
             const trailingSeparator = previousLastItem.querySelector('.separator');
@@ -594,8 +579,6 @@ const I18n = (() => {
         updateSwitcherUI();
     }
 
-    // Shared markup for the 'text' and 'pill' styles: just the language
-    // buttons with a separator between them.
     function buildInlineSwitcher(li) {
         const wrap = document.createElement('span');
         wrap.className = 'lang-switcher-options';
@@ -610,9 +593,6 @@ const I18n = (() => {
         li.appendChild(wrap);
     }
 
-    // 'globe' style: a small globe icon; the language buttons live inside
-    // a group that only expands on hover/focus, so at rest it's just a
-    // quiet icon rather than visible text.
     function buildGlobeSwitcher(li) {
         const wrap = document.createElement('span');
         wrap.className = 'lang-switcher-options';
@@ -704,11 +684,6 @@ const I18n = (() => {
         return target;
     }
 
-    // Lets a page-specific file (e.g. qa-i18n.js) add its own translation
-    // keys without touching this file. Expects { en: {...}, pt: {...} } and
-    // merges it into the shared dictionary under the same top-level shape
-    // (so a qa-i18n.js file can just export { en: { qa: {...} }, pt: { qa: {...} } }).
-    // Safe to call before or after init() — re-applies translations either way.
     function extend(langDict) {
         if (!langDict) return;
         Object.keys(langDict).forEach(lang => {

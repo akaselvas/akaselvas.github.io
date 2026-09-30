@@ -73,13 +73,31 @@
             animation: loader-bounce 1.2s infinite ease-in-out both;
         }
 
-        .loader-spinner span:nth-child(1) { animation-delay: -0.24s; }
-        .loader-spinner span:nth-child(2) { animation-delay: -0.12s; }
-        .loader-spinner span:nth-child(3) { animation-delay: 0s; }
+        .loader-spinner span:nth-child(1) {
+            animation-delay: -0.24s;
+        }
+
+        .loader-spinner span:nth-child(2) {
+            animation-delay: -0.12s;
+        }
+
+        .loader-spinner span:nth-child(3) {
+            animation-delay: 0s;
+        }
 
         @keyframes loader-bounce {
-            0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
-            40% { transform: scale(1); opacity: 1; }
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .loader-logo {
@@ -136,21 +154,21 @@
 
 <body>
 
-    <!-- =============== Loader =============== -->
+    <!-- Loader -->
     <div id="loader-wrapper">
         <div id="loader-background"></div>
-        <img id="loader-logo-bg" class="loader-logo" src="/img/logo_v3.png" alt="Loading..." data-i18n-attr="alt:loader.alt">
-        <img id="loader-logo-accent" class="loader-logo" src="/img/logo_v3.png" alt="Loading..." data-i18n-attr="alt:loader.alt">
+        <img id="loader-logo-bg" class="loader-logo" src="/img/logo_v3.png" alt="Loading..."
+            data-i18n-attr="alt:loader.alt">
+        <img id="loader-logo-accent" class="loader-logo" src="/img/logo_v3.png" alt="Loading..."
+            data-i18n-attr="alt:loader.alt">
 
         <div id="loader-spinner" class="loader-spinner">
             <span></span><span></span><span></span>
         </div>
     </div>
-    <!-- =============== End Loader =============== -->
+
 
     <div id="page-content-wrapper">
-
-
         <header class="header">
             <div class="container">
                 <a href="index.html" class="logo">
@@ -216,7 +234,8 @@
                 <div class="container">
                     <div class="portfolio-grid isotope-grid">
                         <div class="grid-sizer"></div>
-                        <div class="loading-indicator" style="text-align: center; padding: 40px; width: 100%;" data-i18n="portfolio.loading">
+                        <div class="loading-indicator" style="text-align: center; padding: 40px; width: 100%;"
+                            data-i18n="portfolio.loading">
                             Loading Portfolio...
                         </div>
                     </div>
@@ -231,9 +250,9 @@
                 </div>
                 <div class="about-intro text-center">
                     <p data-i18n="about.intro">
-                        SELVAS is a design studio where culture, art, and brands collide. We build vibrant visual 
-                        universes for artists on stage and for brands in the wild. Rooted in the dynamic energy 
-                        of Brazil's creative scene, we blend bold aesthetics with strategic thinking to craft 
+                        SELVAS is a design studio where culture, art, and brands collide. We build vibrant visual
+                        universes for artists on stage and for brands in the wild. Rooted in the dynamic energy
+                        of Brazil's creative scene, we blend bold aesthetics with strategic thinking to craft
                         identities that don't just communicate—they perform.
                     </p>
                 </div>
@@ -241,17 +260,17 @@
                 <div class="founders-section">
                     <div class="founder-images">
                         <div class="founder-portrait">
-                            <!-- Replace with actual image path -->
                             <img src="/img/portfolio/online/portrait.jpg">
                         </div>
                     </div>
                     <div class="about-intro text-center">
                         <p data-i18n-html="about.founder">
-                            Founded in 2010 by designer <span class="founder-name">Fabio Alves</span>, SELVAS was born from the intersection of music, 
-                            technology, and visual art. Our foundation isn't in traditional ad agencies, but in concert 
-                            halls, festival grounds, and collaborative art spaces. This unique perspective allows us 
-                            to bring a raw authenticity and a performer's mindset to every project, whether it's 
-                            shaping the visual identity for an international brand or creating an immersive stage 
+                            Founded in 2010 by designer <span class="founder-name">Fabio Alves</span>, SELVAS was born
+                            from the intersection of music,
+                            technology, and visual art. Our foundation isn't in traditional ad agencies, but in concert
+                            halls, festival grounds, and collaborative art spaces. This unique perspective allows us
+                            to bring a raw authenticity and a performer's mindset to every project, whether it's
+                            shaping the visual identity for an international brand or creating an immersive stage
                             experience for an orchestra.
 
                             We bring a perfectionist's eye and an artist's soul to every collaboration.
@@ -295,7 +314,8 @@
                     </div>
                     <div class="accordion-item">
                         <div class="accordion-header">
-                            <h2 data-i18n-html="about.accordion.whoWeWorkWith.title">who we <strong>work with</strong></h2>
+                            <h2 data-i18n-html="about.accordion.whoWeWorkWith.title">who we <strong>work with</strong>
+                            </h2>
                             <span class="plus" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
                                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -383,7 +403,8 @@
                     </div>
                     <div class="accordion-item">
                         <div class="accordion-header">
-                            <h2 data-i18n-html="about.accordion.howWeAwarded.title">how <strong>we're awarded</strong></h2>
+                            <h2 data-i18n-html="about.accordion.howWeAwarded.title">how <strong>we're awarded</strong>
+                            </h2>
                             <span class="plus" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" class="plus-icon" xmlns="http://www.w3.org/2000/svg">
                                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -429,21 +450,24 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="name" data-i18n="contact.label.name">Name</label>
-                            <input type="text" id="name" name="name" required placeholder="Your Name" data-i18n-placeholder="contact.placeholder.name">
+                            <input type="text" id="name" name="name" required placeholder="Your Name"
+                                data-i18n-placeholder="contact.placeholder.name">
                         </div>
                         <div class="form-group">
                             <label for="email" data-i18n="contact.label.email">Email</label>
-                            <input type="email" id="email" name="email" required placeholder="your.email@example.com" data-i18n-placeholder="contact.placeholder.email">
+                            <input type="email" id="email" name="email" required placeholder="your.email@example.com"
+                                data-i18n-placeholder="contact.placeholder.email">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="subject" data-i18n="contact.label.subject">Subject</label>
-                        <input type="text" id="subject" name="subject" placeholder="What's this about?" data-i18n-placeholder="contact.placeholder.subject">
+                        <input type="text" id="subject" name="subject" placeholder="What's this about?"
+                            data-i18n-placeholder="contact.placeholder.subject">
                     </div>
                     <div class="form-group">
                         <label for="message" data-i18n="contact.label.message">Message</label>
-                        <textarea id="message" name="message" rows="6" required
-                            placeholder="Tell us more..." data-i18n-placeholder="contact.placeholder.message"></textarea>
+                        <textarea id="message" name="message" rows="6" required placeholder="Tell us more..."
+                            data-i18n-placeholder="contact.placeholder.message"></textarea>
                     </div>
 
                     <div class="form-group text-center submit-container">
@@ -468,14 +492,17 @@
                 <div class="footer-content">
                     <div class="footer-copyright">
                         <div class="footer-text-line">
-                            <span class="text" data-i18n-html="footer.line1">Proudly <span class="highlighted">made by a human</span></span>
+                            <span class="text" data-i18n-html="footer.line1">Proudly <span class="highlighted">made by a
+                                    human</span></span>
                         </div>
                         <div class="footer-text-line">
-                            <span class="text" data-i18n-html="footer.line2">Everything here is the responsibility of <span class="highlighted">the
+                            <span class="text" data-i18n-html="footer.line2">Everything here is the responsibility of
+                                <span class="highlighted">the
                                     artist</span></span>
                         </div>
                         <div class="footer-text-line">
-                            <span class="text" data-i18n-html="footer.line3">Built from scratch <span class="highlighted">using their own
+                            <span class="text" data-i18n-html="footer.line3">Built from scratch <span
+                                    class="highlighted">using their own
                                     mind</span></span>
                         </div>
                     </div>

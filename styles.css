@@ -220,6 +220,8 @@ a:hover {
 
 .main-nav ul {
     display: flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
     list-style: none;
     gap: 0;
     padding-right: 0;
@@ -230,7 +232,7 @@ a:hover {
 
 .main-nav li+li::before {
     content: " : ";
-    margin: 0 var(--spacing-lg);
+    margin: 0 var(--nav-sep-gap, var(--spacing-lg));
     color: #a19f98;
 }
 
@@ -1474,9 +1476,24 @@ body.lightbox-open {
         max-height: 36px;
     }
 
+    .main-nav {
+        --nav-sep-gap: 3px;
+    }
+
     .main-nav a {
         padding-top: 17px;
-        font-size: 0.7rem;
+        font-size: 0.6rem;
+        letter-spacing: 0.3px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-switcher-options {
+        margin-left: 6px;
+        padding: 2px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-btn {
+        font-size: 0.5rem;
+        padding: 2px 5px;
     }
 
     .hero {
@@ -1657,9 +1674,24 @@ body.lightbox-open {
         max-height: 35px;
     }
 
+    .main-nav {
+        --nav-sep-gap: 5px;
+    }
+
     .main-nav a {
         padding-top: 10px;
-        font-size: 0.75rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.5px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-switcher-options {
+        margin-left: 8px;
+        padding: 2px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-btn {
+        font-size: 0.55rem;
+        padding: 2px 6px;
     }
 
     .hero {
@@ -1842,9 +1874,24 @@ body.lightbox-open {
         max-height: 45px;
     }
 
+    .main-nav {
+        --nav-sep-gap: 7px;
+    }
+
     .main-nav a {
         padding-top: 17px;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.6px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-switcher-options {
+        margin-left: 10px;
+        padding: 2px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-btn {
+        font-size: 0.58rem;
+        padding: 3px 7px;
     }
 
     .hero {
@@ -2037,8 +2084,22 @@ body.lightbox-open {
         display: block;
     }
 
+    .main-nav {
+        --nav-sep-gap: 8px;
+    }
+
     .main-nav a {
-        font-size: 1rem;
+        font-size: 0.85rem;
+        letter-spacing: 0.8px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-switcher-options {
+        margin-left: 12px;
+    }
+
+    .main-nav .lang-switcher.style-pill .lang-btn {
+        font-size: 0.6rem;
+        padding: 3px 8px;
     }
 
     .category-grid {
@@ -2071,3 +2132,15 @@ body.lightbox-open {
         letter-spacing: 1px;
     }
 }
+
+@media (max-width: 1081px) {
+    .main-nav ul {
+        align-items: baseline;
+    }
+}
+
+/* @media (min-width: 1082px) and (max-width: 1280px) {
+    .main-nav {
+        --nav-sep-gap: 10px;
+    }
+} */
