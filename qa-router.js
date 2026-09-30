@@ -6,7 +6,7 @@
 import I18n from './i18n.js';
 
 const QARouter = (function () {
-    // Project slugs — hero copy itself lives in qa-i18n.js (qa.hero.<slug>)
+    // Project slugs, hero copy itself lives in qa-i18n.js (qa.hero.<slug>)
     // so it stays translated; this module only knows which slugs exist.
     const SLUGS = ['arcana', 'brasil2040', 'playwright'];
     const DEFAULT_SLUG = 'arcana';
@@ -45,8 +45,6 @@ const QARouter = (function () {
         attachFilterLinkListeners();
         applyFromHash();
 
-        // Re-render the active project's hero copy whenever the language
-        // is switched (mirrors filter-menu.js's I18n.onChange hookup).
         I18n.onChange(() => {
             if (!heroText || !heroLightText || !heroBoldText || !textAnimator) return;
             const data = getHeroData(activeSlug);
@@ -68,10 +66,7 @@ const QARouter = (function () {
         applyProject(slug || DEFAULT_SLUG);
     }
 
-    // Mirrors typeOfWorkBtn's hover handling in filter-menu.js: the plus rotates
-    // on mouseenter and is only un-rotated on mouseleave if the tab is NOT active.
-    // This is what keeps the active tab's plus "stuck" in the rotated end-state
-    // instead of animating back once the mouse leaves.
+    // Mirrors typeOfWorkBtn's hover handling in filter-menu.js
     function attachFilterLinkListeners() {
         filterLinks.forEach(link => {
             const plus = link.querySelector('.plus');

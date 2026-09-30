@@ -1,8 +1,5 @@
 // isotope-manager.js - Isotope initialization and portfolio grid management
-//
-// IMPORTANT: now imports Isotope and imagesLoaded from npm (isotope-layout, imagesloaded).
-// Remove the two CDN <script> tags for these libraries from index.html after
-// running `npm install`.
+
 
 import Isotope from 'isotope-layout';
 import imagesLoaded from 'imagesloaded';
@@ -17,7 +14,7 @@ const IsotopeManager = (function () {
     const ITEMS_PER_PAGE = 9; // Change this one number to adjust pagination everywhere
     let currentlyShownItems = 0;
     let isInitialized = false;
-    let filterMenuRef = null; // Set via setFilterMenu() — avoids window.filterMenu antipattern
+    let filterMenuRef = null; // Set via setFilterMenu()
     let emptyStateEl = null;
 
     // --- Public setter so main.js can wire up FilterMenu without a global ---
