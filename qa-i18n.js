@@ -28,7 +28,7 @@ const qaTranslations = {
                 arcanaStrategy: '03 — Strategy',
                 arcanaFindings: '04 — Findings',
                 arcanaScope: '05 — Test Plan Scope',
-                arcanaAutomation: '05 — Automation',
+                arcanaAutomation: '06 — Automation',
 
                 brasilProject: '01 — Project',
                 brasilSystem: '02 — System',
@@ -79,24 +79,24 @@ const qaTranslations = {
                     'automated regression test suite in Pytest.',
                 tldr: {
                     label: 'TL;DR',
-                    li1: '340 manual test cases across 9 epics: onboarding & session, card ' +
+                    li1: '301 manual test cases across 9 epics: onboarding & session, card ' +
                         'selection & state, AI reading generation (WebSocket), contextual AI chat, ' +
                         'responsive design, security/performance/infra, navigation & error handling, ' +
                         'security headers & CORS, and cross-browser & accessibility, run before any ' +
                         'automated coverage existed.',
-                    li2: '5 critical findings written up in depth: Global Deck Mutation (data ' +
+                    li2: '5 critical-to-high severity findings written up in depth: Global Deck Mutation (data ' +
                         'corruption under concurrency), Rate Limiter Bypass (IP spoofing via ' +
                         'X-Forwarded-For), Cross-Site WebSocket Hijacking (CSWSH), JS Context Breakout ' +
                         '(an injection that beats the sanitizer) and Dead SID / Orphan Connection ' +
                         '(infinite loop with silent quota drain).',
                     li3: 'The Agile/Scrum test plan fed into automated tests running in CI on every ' +
-                        'commit, following the <code>xfail</code> pattern, the test starts red, ' +
-                        'documenting the bug and only turns green once the fix lands.',
+                        'commit; two of them follow the <code>xfail</code> pattern: the test starts red, ' +
+                        'documenting the bug, and only turns green once the fix lands.',
                 },
                 links: {
                     liveApp: 'View Live App',
                     github: 'GitHub Repository',
-                    matrix: 'Full 340-Point Test Matrix',
+                    matrix: 'Full 301-Point Test Matrix',
                 },
                 tech: {
                     qaTools: 'QA & Testing Tools:',
@@ -106,14 +106,15 @@ const qaTranslations = {
                 ciLabel: 'Automated Pytest suite running on every commit',
                 sections: {
                     threatMapIntro:
-                        '<strong>Architectural Threat Map:</strong> The QA audit evaluated 340 points and found around 40 defects. ' +
+                        '<strong>Architectural Threat Map:</strong> The QA audit evaluated 301 points and found around 40 defects. ' +
                         'The following breakdown focuses on the five highest-impact vulnerabilities, ' +
                         'distributed across different architectural layers. Two of them were located in the ' +
                         "Flask runtime (memory mutation and template injection), one at the proxy boundary (IP spoofing) " +
                         'and two in the WebSocket channel (inbound hijacking and outbound Dead SID).',
                     strategyP1:
                         'I structured the QA process based on the Scrum methodology, creating <strong>9 ' +
-                        'Epics</strong> and <strong>54 User Stories</strong>. This resulted in <strong>over 340 subtasks</strong> tracked in Jira. ' +
+                        'Epics</strong> and <strong>54 User Stories</strong>. This resulted in <strong>301 subtasks</strong> tracked in Jira ' +
+                        '(the board has since been deleted, so I rebuilt it as a standalone test matrix). ' +
                         'Since this was my first QA-focused project, I prioritized manual testing in the initial phase. ' +
                         'I wanted to build a solid foundation before moving on to automation. Although my subsequent projects (Brasil 2040 and the Playwright suite) ' +
                         'were born automated, here I needed to understand in practice how bugs ' +
@@ -127,7 +128,7 @@ const qaTranslations = {
                         'This approach created a safety net for regression testing, ensuring that ' +
                         'fixes made during QA would not break already validated behaviors.',
                     strategyResult:
-                        '<strong>Result:</strong> A test plan with 340 subtasks in Jira, backed ' +
+                        '<strong>Result:</strong> A test plan with 301 subtasks, originally tracked in Jira, backed ' +
                         'by over 100 automated tests integrated into GitHub Actions for continuous validation in CI/CD.',
                     findingsIntro:
                         'Selected from nearly 40 identified defects, the vulnerabilities explained in this section are the most critical found during the audit. ' +
@@ -135,7 +136,7 @@ const qaTranslations = {
                         'always validated by regression tests to ensure the problem does not recur or that an update does not break what has already been done, ' +
                         'ensuring long-term stability.',
                     scopeIntro:
-                        'The more than 340 manual test cases were organized into 9 Epics and 54 User Stories, ' +
+                        'The 301 manual test cases were organized into 9 Epics and 54 User Stories, ' +
                         'mapped to cover all layers of the application. The QA strategy was designed to validate the ' +
                         'complete user experience (End-to-End) and the infrastructure. ' +
                         'Each Epic focused on a specific domain: CSS animation fluidity, mobile layout responsiveness, ' +
@@ -196,20 +197,26 @@ const qaTranslations = {
                         severity: 'Critical | Infrastructure / DoS and Quota Theft',
                         method: 'Header injection via cURL + Redis key inspection',
                         whatBroke:
-                            '<strong>The problem:</strong> The <code>ProxyFix</code> middleware, used to identify the user\'s IP behind Render\'s proxy, was misconfigured. ' +
-                            'If disabled, the system read the Render server IP for all users. ' +
-                            'If configured with excessive trust (<code>x_for=2</code>), ' +
-                            'it accepted spoofed IPs sent by the user in the <code>X-Forwarded-For</code> header.',
+                            '<strong>The problem:</strong> Two separate failure modes appeared while tuning the <code>ProxyFix</code> ' +
+                            'middleware behind Render\'s load balancers. With <code>x_for=1</code> (the original setting), ' +
+                            'Flask-Limiter read Render\'s internal proxy IP, a 10.x.x.x address that changed on almost every request, ' +
+                            'instead of the user\'s IP, so the per-IP limit never triggered. Raising it to <code>x_for=2</code> ' +
+                            'extracted the real client IP, but trusted a hop the client can influence: an attacker could prepend ' +
+                            'a fake IP to the <code>X-Forwarded-For</code> header and bypass the limiter entirely.',
                         impact:
-                            '<strong>Real impact:</strong> This caused two severe problems. First, ' +
-                            'all site users shared the same request limit, so if one person hit the limit, all other users were blocked simultaneously (Error 429). ' +
-                            'Second, an attacker could send a spoofed header (e.g., <code>X-Forwarded-For: 127.0.0.1</code>), ' +
-                            'tricking the server into treating them as a new user on every click. ' +
-                            'This allowed bypassing the 5 readings/minute limit and draining the paid Gemini API quota indefinitely.',
+                            '<strong>Real impact:</strong> In the first state the rate limit was effectively useless: a 105-request ' +
+                            'loop was never blocked until the fix. In the over-trusted state, a single forged header ' +
+                            '(<code>X-Forwarded-For: 1.2.3.4</code>) let 10 rapid requests through without a single ' +
+                            '<code>429</code>, well over the 5-request production limit. This allowed unlimited free AI readings ' +
+                            'and drained the paid Gemini API quota.',
                         fix:
-                            '<strong>The fix:</strong> Adjust the configuration to <code>ProxyFix(app.wsgi_app, x_for=1, ...</code>). ' +
-                            'This instructs Flask to trust only the last network hop (Render itself), ' +
-                            'ignoring spoofed IPs and correctly identifying the real client.',
+                            '<strong>The fix:</strong> <code>ProxyFix(app.wsgi_app, x_for=1, ...)</code>. With <code>x_for=1</code>, ' +
+                            'Flask trusts only the last network hop, which closes the spoofing bypass (verified in production: ' +
+                            'the 8th request with a forged header returned HTTP 429). ' +
+                            '<strong>Known limitation, documented and accepted:</strong> behind Render\'s load balancers the limiter ' +
+                            'keys on the proxy\'s internal IP rather than the user\'s public IP, so limits are effectively shared ' +
+                            'between users. For a high-traffic deployment, the recommendation is a proxy trust list or the ' +
+                            '<code>CF-Connecting-IP</code> header.',
                         label: 'Regression test, two failure modes, two functions',
                     },
                     b3: {
@@ -252,7 +259,7 @@ const qaTranslations = {
                             'as the malicious payload executed inside an already authorized script block.',
                         fix:
                             '<strong>The fix:</strong> Replace direct template injection with Flask\'s native filter: <code>intencao: {{ intencao | tojson }}</code>. ' +
-                            'This filter correctly serializes the string for a JavaScript context, escaping quotes and special characters with backslashes (\"), ' +
+                            'This filter correctly serializes the string for a JavaScript context, escaping quotes and special characters with backslashes (\\"), ' +
                             'neutralizing any context breakout attempts.',
                         label: 'Regression Test (Verify JS context escape)',
                     },
@@ -437,11 +444,6 @@ const qaTranslations = {
                             'Verified that a <code>receive_message</code> event containing a user-friendly error message is emitted on failure. ' +
                             'If the <code>except</code> block failed silently, the client loading indicator ' +
                             'would spin indefinitely, leaving the user with no recovery path.',
-                        li5:
-                            '<strong>Chat Rate Limiting:</strong> Verification of an in-memory sliding window ' +
-                            'rate limiter (<code>is_rate_limited()</code>). This custom architecture was necessary because ' +
-                            'Flask-Limiter\'s <code>@limiter.limit</code> decorator only covers HTTP routes, remaining completely "blind" to Socket.IO events. ' +
-                            'Testing confirmed that the <code>handle_message</code> handler successfully intercepts and blocks users attempting mass message flooding (Spam/DoS).',
                     },
                     e5: {
                         focus:
@@ -475,13 +477,21 @@ const qaTranslations = {
                         li5:
                             '<strong>Session Lifecycle and Expiration:</strong> Testing the ' +
                             '<code>SESSION_PERMANENT=False</code> configuration. Verification confirmed that the backend generates a cookie without ' +
-                            '<code>Expires</code> or <code>Max-Age</code> attributes. This makes it a true "browser session cookie" destroyed by the operating system as soon as the browser closes—' +
+                            '<code>Expires</code> or <code>Max-Age</code> attributes. This makes it a true "browser session cookie" discarded by the browser as soon as it closes—' +
                             'a critical privacy requirement to safeguard user data on shared devices.',
+                        li6:
+                            '<strong>Tab Privacy Protection (Session Storage Guard):</strong> The ' +
+                            '<code>/clear_session</code> route, introduced to support <code>sessionStorage</code>-based new tab detection in ' +
+                            'cartas.html and results.html, was audited specifically for security. Testing confirmed ' +
+                            'that the route is <code>@csrf.exempt</code> (required because JS fires fetch before any token is available in the DOM), ' +
+                            'strictly accepts the POST method, completely clears all session keys in Redis, ' +
+                            'and returns valid JSON. Any failure in these constraints would represent a distinct vector for ' +
+                            'client crashes or cross-user data leakage.',
                     },
                     e6: {
                         focus:
                             'Evaluation of mobile-specific rendering behavior, touch event semantics, and ' +
-                            'the tab privacy mechanism introduced to handle shared-device use cases.',
+                            'responsive layout across viewport sizes.',
                         li1:
                             '<strong>Orientation Lock (Landscape Guard):</strong> Testing the ' +
                             '<code>#rotate-message</code> overlay controlled by the CSS rule <code>@media ' +
@@ -501,13 +511,9 @@ const qaTranslations = {
                             '<code>width=device-width</code>), and that CSS <code>:hover</code> states do not ' +
                             'persist after tap-and-release ("sticky hover").',
                         li4:
-                            '<strong>Tab Privacy Protection (Session Storage Guard):</strong> The ' +
-                            '<code>/clear_session</code> route, introduced to support <code>sessionStorage</code>-based new tab detection in ' +
-                            'cartas.html and results.html, was audited specifically for security. Testing confirmed ' +
-                            'that the route is <code>@csrf.exempt</code> (required because JS fires fetch before any token is available in the DOM), ' +
-                            'strictly accepts the POST method, completely clears all session keys in Redis, ' +
-                            'and returns valid JSON. Any failure in these constraints would represent a distinct vector for ' +
-                            'client crashes or cross-user data leakage.',
+                            '<strong>Card Grid Responsiveness:</strong> Verification that the 22-card grid wraps ' +
+                            'correctly with flexbox at 320px, with no horizontal scrollbar, tap targets of at least ' +
+                            '44×44px, and correct <code>stage-3</code> and <code>stage-5</code> layouts on narrow viewports.',
                     },
                     e7: {
                         focus:
@@ -591,6 +597,14 @@ const qaTranslations = {
                             'An inverted or missing condition would place <code>http://localhost:3000</code> ' +
                             'into the production CSP allowlist, creating a potential SSRF-based (Server-Side Request Forgery) CSP bypass surface. ' +
                             'Testing confirmed that the production environment is completely clean of development artifacts.',
+                        li6:
+                            '<strong>Rate Limiting on WebSocket Events (Confirmed Vulnerability):</strong> A stress test of ' +
+                            '200 <code>send_message</code> events produced no <code>HTTP 429</code>, because Flask-Limiter\'s ' +
+                            '<code>@limiter.limit</code> decorator only covers HTTP routes and is completely "blind" to Socket.IO events. ' +
+                            'The fix was a custom in-memory sliding-window rate limiter (<code>is_rate_limited()</code>, ' +
+                            '10 messages per 60 seconds per session, backed by a <code>defaultdict</code>). Verification: 12 messages ' +
+                            'were sent in parallel and exactly 10 AI responses were received, with the backend logs confirming ' +
+                            'that attempts 11 and 12 were blocked.',
                     },
                     e9: {
                         focus:
@@ -632,13 +646,13 @@ const qaTranslations = {
                             'the WCAG AA standard for UI components.',
                         li5:
                             '<strong>Performance Benchmarks:</strong> Established production SLA ' +
-                            'baselines: TTFB (Time to First Byte) for Home at 968ms (within the 1000ms target), ' +
-                            'TTI (Time to Interactive) for <code>/cartas</code> improved following a 46% reduction in ' +
-                            'asset size (262KB PNG → 140KB WebP). AI reading generation averaged 5–9 ' +
-                            'seconds across 10 runs; chat responses averaged 3–5 seconds. A ' +
-                            'stress test with 5 concurrent users showed an average latency increase ' +
-                            'of 63% over baseline, documented as Graceful Degradation ' +
-                            'for the current single-instance deployment on Render.',
+                            'baselines: TTFB (Time to First Byte) for Home at 968ms (within the 1000ms target). ' +
+                            'A 46% reduction in asset size (262KB PNG → 140KB WebP) brought TTI (Time to Interactive) ' +
+                            'for <code>/cartas</code> to 4.1s on a Lighthouse mobile audit, above the 3s target and ' +
+                            'accepted as the production baseline. AI reading generation averaged 6.78s (P95 8.10s) ' +
+                            'across 10 runs; chat responses averaged 4.45s (P95 6.88s). A stress test with 5 concurrent ' +
+                            'users showed an average latency increase of about 8.4% over baseline (7.35s vs 6.78s), ' +
+                            'within the 10–20% graceful-degradation target, with no errors or Redis connection exhaustion.',
                     },
                 },
                 diagram: {
@@ -681,15 +695,13 @@ const qaTranslations = {
                         'Background task emits to original socket ID after network drop; reconnected client ' +
                         'hangs forever',
                 },
-
-
             },
             brasil2040: {
                 title: 'Brasil 2040 AI Evals',
                 intro1:
                     '<strong>Brasil 2040</strong> is a RAG (Retrieval-Augmented Generation) application with its own data retrieval architecture, moving away from a ' +
                     'simple chatbot wrapper. The assistant responds exclusively based on Brazilian government climate reports. ' +
-                    'This encompasses 12 PDFs and 400 MB of data that I extracted, processed (chunking), and vectorized (embeddings) ' +
+                    'This encompasses 42 PDFs and 400 MB of data that I extracted, processed (chunking), and vectorized (embeddings) ' +
                     'using the <strong>multilingual-e5-large</strong> model on a Kaggle GPU notebook. Every generated ' +
                     'response must be traceable back to the vectors stored in the Supabase database (pgvector), retrieved by ' +
                     'a FastAPI backend developed for this project. The Gemini model handles text generation, but the documents act as the single source of truth (ground truth). ' +
@@ -703,17 +715,16 @@ const qaTranslations = {
                     'the validation covered backend accuracy and frontend resilience impartially.',
                 tldr: {
                     label: 'TL;DR',
-                    li1: 'A 4-stage LLM-as-judge eval pipeline in CI: retrieval, faithfulness, ' +
-                        'hallucination traps and prompt regression, run against a 30-question golden ' +
-                        'set across 8 categories, with faithfulness judged on two thresholds (0.70 ' +
-                        'factual, 0.60 synthesis).',
+                    li1: 'A 4-stage eval pipeline (LLM-as-judge plus programmatic checks) run as 5 CI jobs: retrieval, faithfulness, hallucination traps ' +
+                        'and prompt regression, against a 29-question golden set across 16 categories. The faithfulness and ' +
+                        'regression tests call the production /chat endpoint, so editing the real prompt changes the results.',
                     li2: 'The ScoutQA agent ran for 30 minutes with no script against the live UI, ' +
                         'covering navigation, filters, KPIs and the out-of-scope flow, the kind of ' +
                         'exploratory testing the API-bound eval suite can\'t do. That\'s how a data' +
                         '-integrity bug surfaced that no automated test had been written to catch.',
-                    li3: 'The eval suite proves the AI\'s semantic correctness on every commit. The ' +
-                        'ScoutQA agent covers what no script was written to check. Neither replaces the ' +
-                        'other.',
+                    li3: 'The eval suite checks the semantic correctness of the AI, and the ScoutQA agent covers what no script ' +
+                        'was written to check. Neither replaces the other. An audit of my own evals also found tests that could ' +
+                        'not fail (a stale prompt copy, skips, "refusal = pass"); after the fixes they exercise the production prompt.',
                 },
                 links: {
                     liveApp: 'View Live App',
@@ -725,7 +736,7 @@ const qaTranslations = {
                     evalStack: 'Eval Stack:',
                     dimensions: 'Dimensions Tested:',
                 },
-                ciLabel: 'All 4 eval jobs green on GitHub Actions',
+                ciLabel: 'All 5 eval jobs green on the latest GitHub Actions run',
                 sections: {
                     systemIntro:
                         '<strong>What makes this different from testing a chatbot:</strong> The main difference ' +
@@ -753,8 +764,10 @@ const qaTranslations = {
                     problem1Body:
                         'The default <code>get_text("text")</code> method in the PyMuPDF library frequently ignores or mangles numbers contained within ' +
                         'table cells. To fix this, I added an explicit extraction step using <code>find_tables()</code> per ' +
-                        'page, appending table contents as structured text before chunking. Without ' +
-                        'this validation, critical data like water deficit probabilities (99%, 74%) would simply never make it into the vector database.',
+                        'page, appending table contents as structured text before chunking. ' +
+                        'Without this step, numbers that live only in tables would never reach the vector database. ' +
+                        'A limit remains: numbers that exist only inside figures (images) are still invisible to the pipeline. ' +
+                        'An audit of the evals found one such case, the 74%-99% deficit risk for the SE/CO subsystem.',
                     problem2Head: 'Problem 2: Regex Destroying Brazilian Decimals',
                     problem2Body:
                         'A common cleaning pattern in NLP preprocessing tutorials (e.g., <code>\\b\\w{1,2}\\b</code> to remove short stop words) was destroying ' +
@@ -773,9 +786,10 @@ const qaTranslations = {
                         'if the retrieved context is fragmented, the LLM-as-a-Judge will be unable to verify response faithfulness.',
                     diagnosticLabel: 'Diagnostic: verify that numbers survive before embedding',
                     evalStrategyIntro:
-                        'The automation suite is a four-stage pipeline integrated into GitHub Actions. The workflow follows ' +
-                        'a fail-fast logic: a failure in any stage blocks the execution of subsequent ones. After all, it makes no sense ' +
-                        'to evaluate response quality if the wrong documents were retrieved from the database.',
+                        'The automation suite has four stages, run as five GitHub Actions jobs. Retrieval acts as the gate: ' +
+                        'faithfulness, latency and regression only run if it passes, because it makes no sense to evaluate answer ' +
+                        'quality if the wrong documents were retrieved. Faithfulness, hallucination traps and out-of-scope checks ' +
+                        'share one job; prompt regression has its own.',
                     pipeline: {
                         stage1Num: 'Stage 1: Retrieval',
                         stage1Title: 'Right source, right terms',
@@ -783,14 +797,16 @@ const qaTranslations = {
                             'The test queries the <code>/search</code> endpoint at <code>top_k=5</code> and <code>top_k=10</code>. It verifies whether the source file ' +
                             'of the returned chunk matches the expectation defined in the golden-set. One of the tests injects an English question ' +
                             'to validate whether the <code>multilingual-e5-large</code> model can cross the language barrier and ' +
-                            'retrieve the correct vectors from an exclusively Portuguese corpus.',
+                            'retrieve the correct vectors from an exclusively Portuguese corpus. ' +
+                            'At least 50% of the expected terms must also appear in the retrieved text, and a connection failure fails the test instead of skipping it.',
                         stage2Num: 'Stage 2: Faithfulness',
-                        stage2Title: '0.70 factual · 0.60 synthesis',
+                        stage2Title: 'Real /chat · verdict + threshold',
                         stage2Body:
-                            'The pipeline generates a live response from the Gemini API and dispatches the triad (Question, Generated Response, ' +
-                            'Retrieved Context) to the LLM-as-a-Judge. Two distinct pass thresholds were defined to handle inherent AI uncertainty: a factual ' +
-                            'response requires high precision (0.70), while a synthesis response may remain faithful to the sources ' +
-                            'yet structured differently from what the judge anticipates (0.60).',
+                            'The test calls the real <code>/chat</code> endpoint (same SYSTEM_PROMPT, temperature and <code>top_k=10</code> as ' +
+                            'production) and sends the triad (question, generated answer, the same 10 retrieved chunks) to the LLM-as-a-Judge. ' +
+                            'A case passes only if the verdict is not "fail" and the score meets the threshold. Synthesis questions get a ' +
+                            'threshold 0.1 lower, since they may stay faithful to the sources while being structured differently from what the ' +
+                            'judge expects. A bare refusal with chunks retrieved fails, unless the golden-set case declares <code>allow_refusal</code>.',
                         stage3Num: 'Stage 3: Honeypots / Negative Testing',
                         stage3Title: 'Hedge or fail',
                         stage3Body:
@@ -799,25 +815,26 @@ const qaTranslations = {
                             '<code>must_not_contain</code> terms (e.g., fabricated numbers) that are verified programmatically before the judge even runs. ' +
                             'A correct refusal from the AI (admitting it lacks the information) scores 1.0. Any hallucination from the model fails the test.',
                         stage4Num: 'Stage 4: Drift Detection',
-                        stage4Title: 'Two-way drift',
+                        stage4Title: 'Anchors + key numbers',
                         stage4Body:
-                            'The test compares responses from the current run against a baseline saved in a JSON file in the repository. ' +
-                            'Missing anchor terms capture quality regressions. Conversely, the appearance of "new numbers" ' +
-                            'not present in the baseline catches the most subtle failure in a RAG system: a change in the ' +
-                            'system prompt that unintentionally loosened the factual constraints of the AI.',
+                            'The test calls the real <code>/chat</code> and compares against a baseline captured from the same endpoint and ' +
+                            'saved as JSON in the repository. The gate is anchors: the expected golden-set terms must appear and the baseline ' +
+                            'key numbers must survive, while new numbers absent from the baseline flag a prompt change that loosened factual ' +
+                            'constraints. The baseline stores a hash of the SYSTEM_PROMPT, so a prompt change raises a warning to recapture it. ' +
+                            'Text similarity is reported but never gates.',
                     },
                     metrics: {
-                        m1: 'Golden-set questions<br>across 8 categories',
-                        m2: 'Judged dimensions<br>per response',
-                        m3: 'CI/CD jobs<br>per commit',
+                        m1: 'Golden-set questions<br>across 16 categories',
+                        m2: 'Judge dimensions<br>(each test uses 1-2)',
+                        m3: 'CI/CD jobs<br>on demand',
                         m4: 'Estimated cost<br>per query',
                     },
                     strategyResult:
-                        '<strong>Result:</strong> Vector retrieval with P95 under 5 seconds, token cost estimation printed ' +
-                        'to the console on every run, and a faithfulness verdict guaranteed on every repository push.',
+                        '<strong>Result:</strong> Retrieval P95 of 0.45 s (limit: 5 s), a token cost estimate printed on every run, ' +
+                        'and a full run of 85 eval tests plus 10 regression tests, all green.',
                     findingsIntro:
                         'The golden set is the foundation of a reliable RAG evaluation system. ' +
-                        'A poorly designed golden set produces false confidence. The four categories below detail where ' +
+                        'A poorly designed golden set produces false confidence. The findings below detail where ' +
                         'calibration was most complex and the impact of each architectural decision.',
                     agentIntro:
                         'Following the completion of the automated evaluation suite (CI/CD), an autonomous agent (ScoutQA) was given a ' +
@@ -884,7 +901,7 @@ const qaTranslations = {
                         row5Notes: 'Rapid switching tested; stats update correctly, no UI corruption',
                         row6Finding: 'State persistence across navigation',
                         row6Notes: 'Locked municipality + crop/scenario preserved when switching panels',
-                        row7Finding: 'All 8 sector panels with correct KPIs',
+                        row7Finding: 'All 6 sector panels (+ About) with correct KPIs',
                         row7Notes: '16.7×, 99%, −30% ENA verified in Energia panel against spec',
                     },
                     agentPlaceHead: 'Where the Agent Proves Its Value (The Value of Autonomous Testing)',
@@ -909,21 +926,18 @@ const qaTranslations = {
                         'and exploratory testing (Agent/Human) owns discovery. ' +
                         'The municipality counter bug required an "eye" on the rendered screen. The faithfulness verdict ' +
                         'required a judge with access to the retrieved vector context. Neither tool could do the other\'s job.',
-                    ciCommitHead: 'What Runs on Every Commit',
+                    ciCommitHead: 'What Runs on Every Workflow Run',
                     ciCommitBody:
-                        'The <code>eval.yml</code> workflow on GitHub Actions defines five interdependent jobs. Retrieval tests run ' +
-                        'first and act as a blocking gate for subsequent stages. If a chunk embedding drifts or a ' +
-                        'source file is renamed, retrieval fails and the LLM judge will never evaluate an answer ' +
-                        'based on faulty context. The latency suite runs in parallel with the faithfulness suite, printing an estimated Cost/Query ' +
-                        'to the job log on every run, ensuring continuous financial observability.',
-                    ciRegressionHead: 'What Prompt Regression Commits',
+                        'The <code>evals.yml</code> workflow on GitHub Actions (manual dispatch: retrieval alone, or the full suite with <code>all</code>) defines ' +
+                        'five jobs. Retrieval tests run first and act as a blocking gate for the subsequent jobs. If a chunk embedding drifts ' +
+                        'or a source file is renamed, retrieval fails and the LLM judge will never evaluate an answer based on faulty context. ' +
+                        'The latency suite runs in parallel with the faithfulness suite, printing an estimated cost per query to the job log on every run.',
+                    ciRegressionHead: 'What Prompt Regression Keeps',
                     ciRegressionBody:
-                        'Each regression run generates and uploads a <code>regression_diff.json</code> artifact—a ' +
-                        'structured diff of changes between current answers and the baseline, containing similarity scores and response previews. ' +
-                        'The history of how system responses evolved over time becomes audit-ready at the commit level, ' +
-                        'rather than only at deploy time. If a context window tweak triples the ' +
-                        'input token count, the cost monitor catches the anomaly in CI/CD ' +
-                        'before the API bill arrives at month-end.',
+                        'Each regression run generates and uploads a <code>regression_diff.json</code> artifact, a structured diff between ' +
+                        'current answers and the baseline, with similarity scores and response previews. The baseline itself is versioned in ' +
+                        'the repository, so a prompt change shows up as a hash mismatch, and each run diff is kept as a CI artifact. If a change ' +
+                        'pushes the retrieved context (measured at <code>top_k=5</code>) past the 4,000-token budget, the token test fails.',
                     threeLayersHead: 'The Architectural Model: Three Layers with Clear Ownership',
                     threeLayersBody:
                         'The conclusion of this audit reinforces that quality in AI systems requires a three-layer testing architecture: ' +
@@ -938,65 +952,79 @@ const qaTranslations = {
                         'Both approaches were strictly necessary to ensure the system\'s production readiness.',
                     auditSuiteHead: 'Auditing the eval suite\'s own blind spots',
                     auditSuiteBody:
-                        'A green CI badge doesn\'t mean the tests ran, it means nothing failed, and those ' +
-                        'aren\'t the same thing. Three patterns in the original suite made that gap real: ' +
-                        '1) <code>pytest.skip()</code> on a connection error looked identical to a passing test ' +
-                        'in the job summary, 2) a latency test converted any slow run into <code>xfail</code> on ' +
-                        'the assumption it was "CI runner variance," which would hide a genuine regression ' + 
-                        'forever, and 3) the nightly full-eval job explicitly excluded the prompt regression file ' +
-                        'with <code>--ignore</code>, so the "complete" run never actually ran it. Fixed all three',
+                        'A green CI badge does not mean the tests ran, it means nothing failed, and those are not the same thing. ' +
+                        'Two patterns in the original suite made that gap real: 1) <code>pytest.skip()</code> on a connection error looked ' +
+                        'identical to a passing test in the job summary, and 2) a latency test converted any slow run into <code>xfail</code> ' +
+                        'on the assumption it was "CI runner variance," which would hide a genuine regression forever. The deeper problems ' +
+                        'were elsewhere: the faithfulness and regression tests generated answers from a stale copy of the system prompt ' +
+                        '(so editing the production prompt changed nothing), the prompt hash was computed over <code>app.js</code>, the ' +
+                        'faithfulness threshold was overridden by any "pass" verdict from the judge, and "both answers are refusals" counted ' +
+                        'as a pass. All of these were fixed: connection-error skips became hard failures, latency takes the median of three ' +
+                        'runs, the tests call the real endpoint, and a bare refusal fails. None of this changes what the AI answers. It changes ' +
+                        'whether the pipeline can be trusted to notice when it stops. (The full nightly run still excludes the regression file ' +
+                        'on purpose: it has its own job, and running it twice would only burn API quota.)',
+                    limitsHead: 'Known limits of this suite',
+                    limitsBody:
+                        'The judge is lenient (all logged faithfulness scores were 1.00), so it is paired with programmatic checks. ' +
+                        'At temperature 0.7 answer wording varies a lot, so regression gates on anchors, and an anchor can fail ' +
+                        'occasionally from variance alone. The end-to-end latency test uses its own simplified prompt, so it measures ' +
+                        'time, not quality. Numbers that exist only in PDF figures are outside the RAG. The 802-chunk cleanup used a ' +
+                        'digit-density heuristic that can also delete legitimate numeric chunks, and it is not yet part of the ingestion pipeline.',
                 },
                 findings: {
                     f1: {
-                        title: '1. Armadilhas de Alucinação: <strong>Capturando fabricação confiante</strong>',
-                        category: 'hallucination_trap (Armadilhas de Alucinação)',
+                        title: '1. Hallucination Traps: <strong>Catching confident fabrication</strong>',
                         questions: '3 (hallucination_001 → 003)',
-                        passCondition: 'Ressalva ou recusa explícita (pontua 1,0).',
+                        passCondition: 'Explicit hedge or refusal (scores 1.0).',
                         p1:
-                            '<strong>O problema:</strong> Três perguntas solicitam fatos que não ' +
-                            'existem em nenhum documento fonte: "PIB agrícola de 2039", "El Niño de 2038" e ' +
-                            '"Contagens de extinção de peixes no Rio São Francisco". Um LLM treinado com dados em ' +
-                            'escala da internet possui conhecimento prévio e pode gerar respostas altamente plausíveis para as três questões. ' +
-                            'O teste verifica estritamente se o modelo não utiliza esse conhecimento externo, mantendo-se confinado ao contexto fornecido.',
+                            '<strong>The problem:</strong> Three questions ask for facts that do not exist in any source document: ' +
+                            '"2039 agricultural GDP", "2038 El Niño" and "fish extinction counts in the São Francisco River". An LLM trained ' +
+                            'at internet scale has prior knowledge and can produce highly plausible answers to all three. The test strictly ' +
+                            'checks that the model does not use that outside knowledge and stays confined to the provided context.',
                         p2:
-                            '<strong>Comportamento do Juiz (LLM-as-a-Judge):</strong> A flag <code>should_hedge</code> marca ' +
-                            'esses casos como cenários onde a recusa é a resposta desejada. O prompt do juiz ' +
-                            'declara explicitamente: se a IA responder "Não encontrei essa informação nos ' +
-                            'trechos fornecidos" a nota atribuída deve ser 1,0. Recusar-se a fabricar dados ' +
-                            'é o comportamento correto do sistema, não uma falha.',
+                            '<strong>Judge behavior (LLM-as-a-Judge):</strong> The <code>should_hedge</code> flag marks these cases as ' +
+                            'scenarios where refusal is the desired answer. The judge prompt states explicitly: if the AI answers ' +
+                            '"Não encontrei essa informação nos trechos fornecidos", the score must be 1.0. Refusing to fabricate data is ' +
+                            'the correct behavior, not a failure.',
                         p3:
-                            '<strong>A proteção <code>must_not_contain</code> (Validação Determinística):</strong> Para evitar a dependência ' +
-                            'exclusiva da interpretação do LLM juiz cada armadilha carrega termos proibidos que são verificados de forma programática. ' +
-                            'Se o ano "2039" ou palavras como "trilhões" aparecerem na resposta como uma afirmação factual o teste falha via assert  ' +
-                            'do Pytest antes mesmo do juiz rodar. Isso garante uma reprovação determinística, sem margem para ambiguidades.',
-                        label: 'Exemplo de armadilha (golden_set.json):',
+                            '<strong>The <code>must_not_contain</code> guard (deterministic validation):</strong> To avoid depending only on ' +
+                            'the judge LLM, each trap carries forbidden terms that are checked programmatically. If the year "2039" or words ' +
+                            'like "trilhões" appear in the answer as a factual claim, the Pytest assert fails before the judge even runs. ' +
+                            'This gives a deterministic failure with no room for ambiguity.',
+                        label: 'Trap example (golden_set.json):',
                     },
                     f2: {
                         title: '2. Faithfulness Calibration: <strong>The Hardest Design Decision</strong>',
-                        threshold: '0.70 factual and 0.60 synthesis',
-                        questions: '14 (factual + synthesis)',
+                        threshold: '0.6 in CI (0.7 default) · −0.1 for synthesis',
+                        questions: '16 factual + synthesis (24 with extended difficulties)',
                         p1:
                             '<strong>The Calibration Problem (False Negatives):</strong> An early version of the golden set ' +
                             'included the word "billions" as a required term for an energy sector question. However, the system prompt ' +
                             'instructs the model to refuse generating absolute numbers that are not ' +
                             'explicitly present in the retrieved chunks. A strict and safe prompt produces a correct ' +
                             'refusal, but a poorly designed test would mark that refusal as a failure. ' +
-                            'The notes field in the JSON tracks the history of this architectural decision: <em>"Strict prompt refuses absolute values not in ' +
-                            'chunks, removed \'billions\', kept multiplier and model name as ' +
-                            'stable anchors."</em>',
+                            'The notes field in the JSON tracks the history of this architectural decision: <em>"Removed \'bilhões\' (strict prompt refuses ' +
+                            'absolute values not in chunks) and \'8.5\' (model uses \'cenário extremo\' instead of RCP label). ' +
+                            '16,7× multiplier and HadGEM model name are stable anchors."</em>',
                         p2:
                             '<strong>Why Use Dual Thresholds:</strong> The judge is also an LLM and therefore shares the ' +
                             'same failure modes (such as formatting sensitivity) as the system under test. A score of 0.75 does not mean "75% ' +
                             'correct"; it means the judge is reasonably confident that the answer is ' +
-                            'grounded in the context. Synthesis questions (which require cross-referencing multiple documents) receive a 10% lower passing bar ' +
-                            '(0.60). This is because cross-sector reasoning produces answers structured differently from the benchmark, ' +
+                            'grounded in the context. Synthesis questions (which require cross-referencing multiple documents) receive a passing bar 0.1 lower than factual questions. ' +
+                            'This is because cross-sector reasoning produces answers structured differently from the benchmark, ' +
                             'yet still factually faithful to the sources. Dual thresholds explicitly encode inherent LLM uncertainty, ' +
                             'rather than treating AI verdicts as strictly binary.',
+                        p3:
+                            '<strong>What the Judge Cannot See:</strong> every faithfulness score printed in the logs was 1.00, ' +
+                            'and a refusal always passes faithfulness because it asserts nothing false. That let a legitimate question ' +
+                            '("which sector is most vulnerable?") get the out-of-scope refusal and still pass. The fix pairs the judge with programmatic checks: ' +
+                            'bare-refusal detection and a false out-of-scope check on every faithfulness case, ' +
+                            'anchor terms in the regression suite, and must_not_contain on the traps. The prompt was corrected and the question now gets a real answer.',
                     },
                     f3: {
                         title: '3. Prompt Regression: <strong>Two-Way Drift Detection</strong>',
                         mode: 'Capture → Compare',
-                        artifact: 'regression_diff.json (Committed to repository)',
+                        artifact: 'Baseline committed; diff uploaded as CI artifact',
                         p1:
                             '<strong>Two-Way Drift Detection:</strong> Tweaking system prompt instructions to handle out-of-scope queries ' +
                             'often accidentally breaks factual answers that were previously working. ' +
@@ -1005,11 +1033,15 @@ const qaTranslations = {
                             'Second, it looks for unmapped new numbers, catching a much more subtle failure: if the AI starts generating numbers ' +
                             'absent from the baseline, it indicates a prompt change unintentionally loosened ' +
                             'factual constraints, allowing the model to hallucinate quantitative data.',
+                        p2:
+                            '<strong>Why Anchors, Not Similarity:</strong> at temperature 0.7, the very first comparison after capturing ' +
+                            'the baseline (same prompt, same retrieval) scored only 0.26 to 0.40 text similarity. That is model variance, ' +
+                            'not regression, so <code>regression_diff.json</code> is informational and the gate uses anchor terms and key numbers.',
                         label: 'Regression test (Two-way number verification):',
                     },
                     f4: {
                         title: '4. Out-of-Scope Handling: <strong>Scope Enforcement Under the Judge</strong>',
-                        questions: '2 (Cake recipe + World Cup prediction)',
+                        questions: '2 (Brigadeiro recipe + World Cup prediction)',
                         passCondition: 'Safety score ≥ 0.60 OR ≥ 2 matched hedge phrases.',
                         p1:
                             '<strong>Design Intent (Guardrailing):</strong> The system prompt contains an explicit redirection instruction: ' +
@@ -1031,14 +1063,12 @@ const qaTranslations = {
                     f5: {
                         title: '5. Production Debugging: <strong>Two Bugs Hiding Behind One Wrong Answer</strong>',
                         trigger: 'A single UI question returning a false refusal',
-                        questions: '33 of 86 flagged, narrowed to 2 real gaps',
+                        questions: '33 of 86 refused: 5 correct, 28 false; 2 real gaps remain',
                         corpus: '802 of 2,203 chunks — 36% — were junk',
                         p1:
-                            '<strong>What triggered it:</strong> a UI-suggested question ' +
-                            'kept returning  that it did not find the information in the provided excerpts, ' +
-                            'even though the report covers exactly this. ' +
-                            'The golden set never caught it, because none of its 30 questions matched ' +
-                            'the phrasing the UI actually suggests to users.',
+                            '<strong>What triggered it:</strong> a UI-suggested question kept answering that the information was not found ' +
+                            'in the provided excerpts, even though the report covers exactly this. The golden set never caught it, because ' +
+                            'none of its questions matched the phrasing the UI actually suggests to users.',
                         p2:
                             '<strong>Isolating the layer:</strong> the first move was ruling out whether this ' +
                             'was a retrieval problem or a generation problem, two failure modes that look ' +
@@ -1048,10 +1078,10 @@ const qaTranslations = {
                             'refused, the bug had to be in the prompt, not the vector store.',
                         p3:
                             '<strong>Bug 1, scope drift in the prompt:</strong> the system prompt\'s topic ' +
-                            'list only named agriculture. The corpus actually covers six sectors (energy, ' +
+                            'list only named agriculture. The corpus actually covers six sectors (agriculture, energy, ' +
                             'water resources, transport, coast, urban drainage) but the model read that list ' +
                             'as exhaustive and redirected users to "this is out of scope" for anything outside ' +
-                            'farming, even with the right chunks sitting in context. 33 of 86 questions failed this way.',
+                            'farming, even with the right chunks sitting in context. Together with Bug 2 below, this produced 28 false refusals out of 86 questions (33 refusals in total, 5 of them correct).',
                         p4:
                             '<strong>Bug 2, junk chunks acting as similarity attractors:</strong> a separate ' +
                             'corpus-wide scan (unique-word ratio, digit density, boilerplate detection) ' +
@@ -1060,11 +1090,30 @@ const qaTranslations = {
                             'and repeated institutional letterhead. These scored suspiciously high cosine ' +
                             'similarity against almost any question and kept beating the chunk that actually answered it.',
                         p5:
-                            '<strong>Fix and verification:</strong> rewrote the scope section to name every ' +
-                            'sector, deleted the 802 chunks after a manual count check and reran the same ' +
-                            '86-question set. Flagged cases dropped from 33 to 2, both genuine corpus gaps ' +
-                            '(one question referenced a river basin the report never covers).',
+                            '<strong>Fix and verification:</strong> rewrote the scope section to name every sector, deleted the 802 chunks ' +
+                            'after a manual count check and reran the same 86 questions. Of the 33 refusals, 5 were correct (traps and ' +
+                            'out-of-scope), leaving 28 false refusals; after the fixes only 2 remained, both genuine corpus gaps. The two fixes ' +
+                            'were applied together, so the effect of each alone was not measured.',
                         label: 'Diagnostic: telling retrieval failure apart from prompt failure:',
+                    },
+                    f6: {
+                        title: '6. Auditing the Evals: <strong>A baseline that was itself a refusal</strong>',
+                        trigger: 'Audit of the eval suite itself',
+                        resultKey: 'Result',
+                        result: 'Figure-only data, question removed',
+                        p1:
+                            '<strong>What was wrong:</strong> the faithfulness and regression tests copied an older, stricter prompt instead of ' +
+                            'calling the production endpoint, hashed <code>app.js</code> as if it were the prompt, and treated "both answers are ' +
+                            'refusals" as a pass. The baseline for the SE/CO deficit-risk question (expected 74%-99%) was a refusal, ' +
+                            'so the case passed without checking anything.',
+                        p2:
+                            '<strong>The fix:</strong> tests now call the real <code>/chat</code> with production settings, the hash covers ' +
+                            'the real SYSTEM_PROMPT, and a bare refusal fails. With that, the case failed for real, on its expected ' +
+                            'anchors (74% and 99%).',
+                        p3:
+                            '<strong>Root cause:</strong> two scripts searched for the number in every Energia chunk in the database and ' +
+                            'in the source PDFs (text and tables). It existed in neither. The likely explanation is that it appears only inside a figure (the report has a "Figura 35" caption for this chart), which text extraction never sees. The question was ' +
+                            'removed from the golden set and the limit documented, since the dashboard shows a number the chatbot cannot confirm.',
                     },
                 },
                 diagram1: {
@@ -1104,7 +1153,7 @@ const qaTranslations = {
                     arrowPipelineToQaX1: '430', arrowPipelineToQaY1: '170', arrowPipelineToQaX2: '488', arrowPipelineToQaY2: '170',
                     testsLabelX: '460', testsLabelY: '163',
                     source: 'Source',
-                    pdfs: '12 PDFs',
+                    pdfs: '42 PDFs',
                     pdfsSub: 'Brazilian gov. research',
                     kaggleHead: 'Kaggle GPU Notebook',
                     kaggleSub1: 'PyMuPDF + table extract',
@@ -1122,7 +1171,7 @@ const qaTranslations = {
                     fastapiHead: 'HuggingFace Spaces',
                     fastapi: 'FastAPI',
                     fastapiSub1: 'query: embed question',
-                    fastapiSub2: 'cosine search top_k=5',
+                    fastapiSub2: 'cosine search top_k=10',
                     fastapiSub3: 'stream via Gemini',
                     generation: 'Generation',
                     geminiApi: 'Gemini API',
@@ -1165,6 +1214,7 @@ const qaTranslations = {
                     col3BodyX: '626',
                     col3NoteX: '608',
 
+                    evalSuiteHead: 'Evaluation Suite',
                     evalSuiteSub: 'Pytest + LLM-as-a-Judge',
                     e1: 'Retrieval accuracy (source file)',
                     e2: 'Context faithfulness (Groundedness)',
@@ -1177,22 +1227,22 @@ const qaTranslations = {
                     agentHead: 'Autonomous AI Agent',
                     agentSub: 'ScoutQA · 30 Minutes',
                     a1: 'Navigation and tab switching',
-                    a2: 'Interaction with 11 crop filters + 3 scenarios',
-                    a3: 'Visual KPI validation vs Specification (e.g., 16.7×, 99%)',
+                    a2: 'All 11 crop filters + 3 scenarios',
+                    a3: 'KPI values vs spec (16.7×, 99%)',
                     a4: 'Tooltip behavior and sidebar locking',
                     a5: 'Out-of-scope refusal confirmed in UI',
-                    a6: 'Environmental bug discovery (UI counter drift)',
+                    a6: 'Ambient bugs (UI counter drift)',
                     a7: 'Semantic faithfulness of AI response',
-                    a8: 'Prompt scoping / Adversarial injection',
+                    a8: 'Prompt scope / injection',
                     gapsHead: 'Known Gaps',
                     gapsSub: 'Covered by neither',
-                    g1: 'Prompt injection attacks (Jailbreaking)',
+                    g1: 'Prompt injection attacks',
                     g2: 'Adversarial Red-Teaming',
                     g3: 'Rate limiting and token quotas',
                     g4: 'Mobile events / Touch gestures',
-                    g5: 'Chat streaming verification via WebSocket',
-                    gapsNote1: 'Mitigation: Requires',
-                    gapsNote2: 'dedicated E2E tests via Playwright + manual Red-Team',
+                    g5: 'Streaming chat verification (HTTP)',
+                    gapsNote1: 'Mitigation: requires',
+                    gapsNote2: 'Playwright E2E + manual red-team',
                 },
             },
             playwright: {
@@ -1483,7 +1533,7 @@ const qaTranslations = {
                         rootCause: 'Locators are dynamic, and the .first() method is re-evaluated on every call.',
                         fixPattern: 'Assert element count rather than relying on a reference that becomes stale.',
                         p1:
-                            '<strong>What broke:</strong> The initial approach for an item deletion test was to ' +
+                            '<strong>What broke:</strong> Two separate failure modes appeared while tuning ' +
                             'select the first card, click the delete button, and assert that the card was hidden. ' +
                             'Because Playwright locators are re-evaluated on every call, removing Card 1 from the ' +
                             'DOM causes former Card 2 to become the new first card. ' +
@@ -1813,7 +1863,7 @@ const qaTranslations = {
                 arcanaStrategy: '03 — Estratégia',
                 arcanaFindings: '04 — Descobertas',
                 arcanaScope: '05 — Escopo do Plano de Testes',
-                arcanaAutomation: '05 — Automação',
+                arcanaAutomation: '06 — Automação',
 
                 brasilProject: '01 — Projeto',
                 brasilSystem: '02 — Sistema',
@@ -1859,29 +1909,29 @@ const qaTranslations = {
                     'por LLM.',
                 intro2:
                     'Este material detalha a auditoria de segurança e infraestrutura realizada na ' +
-                    'aplicação. O processo identificou e corrigiu falhas na proteção de cota  de ' +
+                    'aplicação. O processo identificou e corrigiu falhas na proteção de cota de ' +
                     'API, no gerenciamento de estado e nos limites de protocolo. Todas as correções foram validadas por uma suíte de ' +
                     'testes de regressão automatizada em Pytest.',
                 tldr: {
                     label: 'TL;DR',
-                    li1: '340 casos de teste manuais organizados em 9 epics: onboarding e sessão, ' +
+                    li1: '301 casos de teste manuais organizados em 9 epics: onboarding e sessão, ' +
                         'seleção de cartas e estado, geração de leitura via WebSocket, chat contextual ' +
                         'com IA, design responsivo, segurança/performance/infra, navegação e ' +
                         'tratamento de erros, headers de segurança e CORS, cross-browser e ' +
                         'acessibilidade, todos feitos antes de qualquer automação.',
-                    li2: 'As 5 falhas mais críticas documentadas: Mutação Global do Baralho ' +
+                    li2: 'As 5 falhas de severidade crítica a alta documentadas em profundidade: Mutação Global do Baralho ' +
                         '(corrupção de dados sob concorrência), Contorno do Limitador de Taxa ' +
                         '(spoofing de IP via X-Forwarded-For), Sequestro de WebSocket entre Sites ' +
                         '(CSWSH), Fuga do Contexto JS (injeção que vence o sanitizador) e Conexão ' +
                         'Órfã / Dead SID (loop infinito com consumo silencioso de cota).',
                     li3: 'O plano de teste em Agile/Scrum virou testes automatizados no CI a cada ' +
-                        'commit, no padrão <code>xfail</code>, onde o teste nasce vermelho ' +
+                        'commit; dois deles seguem o padrão <code>xfail</code>: o teste nasce vermelho ' +
                         'documentando o bug e só fica verde quando a correção entra.',
                 },
                 links: {
                     liveApp: 'Ver Aplicação ao Vivo',
                     github: 'Repositório no GitHub',
-                    matrix: 'Matriz Completa de 340 Pontos de Teste',
+                    matrix: 'Matriz Completa de 301 Pontos de Teste',
                 },
                 tech: {
                     qaTools: 'Ferramentas de QA e Teste:',
@@ -1891,14 +1941,15 @@ const qaTranslations = {
                 ciLabel: 'Suíte Pytest automatizada rodando a cada commit',
                 sections: {
                     threatMapIntro:
-                        '<strong>Mapa de Ameaças Arquitetural:</strong> A auditoria de QA avaliou 340 pontos e encontrou cerca de 40 defeitos. ' +
+                        '<strong>Mapa de Ameaças Arquitetural:</strong> A auditoria de QA avaliou 301 pontos e encontrou cerca de 40 defeitos. ' +
                         'O detalhamento a seguir foca nas cinco vulnerabilidades de maior impacto, ' +
                         'distribuídas por diferentes camadas da arquitetura. Duas delas foram localizadas no ' +
                         "runtime do Flask (mutação de memória e injeção de template), uma na fronteira do proxy (falsificação de IP) " +
                         'e duas no canal WebSocket (sequestro na entrada e Dead SID na saída).',
                     strategyP1:
                         'Estruturei o processo de QA com base na metodologia Scrum, criando <strong>9 ' +
-                        'Epics</strong> e <strong>54 User Stories</strong>. Isso resultou em <strong>mais de 340 subtasks</strong> rastreadas no Jira. ' +
+                        'Epics</strong> e <strong>54 User Stories</strong>. Isso resultou em <strong>301 subtasks</strong> rastreadas no Jira ' +
+                        '(o board foi deletado desde então, então o reconstruí como uma matriz de testes independente). ' +
                         'Como este foi meu primeiro projeto de QA priorizei o teste manual. ' +
                         'Queria construir uma base sólida antes de partir para a automação. Embora meus projetos seguintes (Brasil 2040 e a suíte Playwright) ' +
                         'já tenham nascido automatizados aqui eu precisava entender na prática como os bugs ' +
@@ -1912,15 +1963,15 @@ const qaTranslations = {
                         'Essa abordagem criou uma rede de segurança para testes de regressão, garantindo que as ' +
                         'correções feitas durante o QA não quebrassem comportamentos já validados.',
                     strategyResult:
-                        '<strong>Resultado:</strong> Um plano de testes com 340 subtasks no Jira, apoiado ' +
+                        '<strong>Resultado:</strong> Um plano de testes com 301 subtasks, originalmente rastreado no Jira, apoiado ' +
                         'por mais de 100 testes automatizados e integrados ao GitHub Actions para validação contínua em CI/CD.',
                     findingsIntro:
-                        'Selecionadas entre quase 40 defeitos identificados as vulnerabilidades explicadas nessa sessão são as mais críticas encontradas durante a auditoria. ' +
+                        'Selecionadas entre quase 40 defeitos identificados, as vulnerabilidades explicadas nessa sessão são as mais críticas encontradas durante a auditoria. ' +
                         'Para cada uma documentei a falha observada, o impacto real na infraestrutura ou nos dados do usuário e a correção aplicada, ' +
                         'sempre validada por testes de regressão para garantir que o problema não volte a ocorrer ou uma atualização não quebre o que já foi feito, ' +
                         'garantindo estabilidade a longo prazo.',
                     scopeIntro:
-                        'Os mais de 340 casos de teste manuais foram organizados em 9 Epics e 54 User Stories, ' +
+                        'Os 301 casos de teste manuais foram organizados em 9 Epics e 54 User Stories, ' +
                         'mapeados para cobrir todas as camadas da aplicação. A estratégia de QA foi desenhada para validar a experiência ' +
                         'completa do usuário (End-to-End) e a infraestrutura. ' +
                         'Cada Epic focou em um domínio específico: fluidez das animações CSS, responsividade do layout mobile, ' +
@@ -1943,15 +1994,16 @@ const qaTranslations = {
                     xfailHead: 'O padrão xfail (Correção de bugs guiada por testes)',
                     xfailBody:
                         'Duas vulnerabilidades conhecidas (um crash de <code>KeyError</code> no handler ' +
-                        'de tamanho) foram mapeadas com o decorador <code>@pytest.mark.xfail</code> antes da correção ser aplicada no código-fonte. ' +
+                        'e uma entrada sem limite de tamanho) foram mapeadas com o decorador <code>@pytest.mark.xfail</code> antes da correção ser aplicada no código-fonte. ' +
                         'Isso documentou cada falha com um caso reproduzível, que se converteu automaticamente ' +
                         'em um teste aprovado assim que o bug foi resolvido. Garantir que um teste falhe (vermelho) antes de passar (verde) ' +
                         'é uma prova de engenharia muito mais sólida do que escrever o teste apenas após a correção.',
                     transparencyNote:
-                        '<strong>Nota de Transparência:</strong> O código dos testes automatizados foi escrito em ' +
+                        '<strong>Nota de Transparência:</strong> O código dos testes automatizados foi escrito ' +
                         'com o apoio de ferramentas de pair-programming com IA. Meu papel foi projetar a estratégia ' +
                         'de testes, identificar os edge cases por meio de testes exploratórios manuais ' +
-                        'e revisar o código gerado contra a lógica da aplicação.',
+                        'e revisar rigorosamente o código gerado contra a lógica da aplicação. ' +
+                        'O uso de IA para acelerar a escrita de testes (boilerplate) é uma prática pragmática que adoto para otimizar o tempo no dia a dia de QA.',
                 },
                 bugs: {
                     b1: {
@@ -1961,7 +2013,7 @@ const qaTranslations = {
                         whatBroke:
                             '<strong>O problema:</strong> O código estava modificando a lista principal de cartas ' +
                             '<code>TAROT_CARDS</code> em vez de gerar uma cópia para cada usuário. ' +
-                            'A posição da carta ("normal" ou "invertida") ' +
+                            'A posição da carta ("normal" ou "invertido") ' +
                             'era gravada direto na variável global do servidor.',
                         impact:
                             '<strong>Impacto real:</strong> Como o baralho na memória era compartilhado, a leitura de um usuário interferia na do outro. ' +
@@ -1980,20 +2032,26 @@ const qaTranslations = {
                         severity: 'Crítico | Infraestrutura / DoS e Roubo de Cota',
                         method: 'Injeção de headers via cURL + Inspeção de chaves no Redis',
                         whatBroke:
-                            '<strong>O problema:</strong> O middleware <code>ProxyFix</code>, usado para identificar o IP do usuário por trás do proxy do Render, estava mal configurado. ' +
-                            'Se desativado, o sistema lia o IP do servidor do Render para todos os usuários. ' +
-                            'Se configurado com confiança excessiva (<code>x_for=2</code>), ' +
-                            'ele aceitava IPs falsos enviados pelo usuário no header <code>X-Forwarded-For</code>.',
+                            '<strong>O problema:</strong> Dois modos de falha distintos apareceram durante o ajuste do middleware <code>ProxyFix</code> ' +
+                            'atrás dos load balancers do Render. Com <code>x_for=1</code> (a configuração original), ' +
+                            'o Flask-Limiter lia o IP do proxy interno do Render, um endereço 10.x.x.x que mudava quase a cada requisição, ' +
+                            'em vez do IP do usuário, então o limite por IP nunca disparava. Ao subir para <code>x_for=2</code>, ' +
+                            'o IP real do cliente passou a ser extraído, mas o sistema confiava em um salto que o cliente consegue influenciar: um atacante podia adicionar ' +
+                            'um IP falso ao header <code>X-Forwarded-For</code> e contornar o limitador por completo.',
                         impact:
-                            '<strong>Impacto real:</strong> Isso gerava dois problemas graves. Primeiro, ' +
-                            'todos os usuários do site dividiam o mesmo limite de requisições, então se uma pessoa atingisse o limite todos os outros usuários eram bloqueados simultaneamente (Erro 429). ' +
-                            'Segundo, um atacante podia enviar um header falso (ex: <code>X-Forwarded-For: 127.0.0.1</code>), ' +
-                            'enganando o servidor para ser tratado como um novo usuário a cada clique. ' +
-                            'Isso permitia burlar o limite de 5 leituras/minuto e drenar a cota paga da API do Gemini indefinidamente.',
+                            '<strong>Impacto real:</strong> No primeiro estado o limite de taxa era praticamente inútil: um loop de 105 requisições ' +
+                            'nunca era bloqueado até a correção. No estado de confiança excessiva, um único header forjado ' +
+                            '(<code>X-Forwarded-For: 1.2.3.4</code>) deixou passar 10 requisições rápidas sem nenhum ' +
+                            '<code>429</code>, bem acima do limite de 5 requisições de produção. Isso permitia leituras de IA gratuitas e ilimitadas ' +
+                            'e drenava a cota paga da API do Gemini.',
                         fix:
-                            '<strong>A correção:</strong> Ajustar a configuração para <code>ProxyFix(app.wsgi_app, x_for=1, ...</code>). ' +
-                            'Isso instrui o Flask a confiar apenas no último salto de rede (o próprio Render), ' +
-                            'ignorando IPs falsificados e identificando corretamente o cliente real.',
+                            '<strong>A correção:</strong> <code>ProxyFix(app.wsgi_app, x_for=1, ...)</code>. Com <code>x_for=1</code>, ' +
+                            'o Flask confia apenas no último salto de rede, o que fecha a brecha de spoofing (verificado em produção: ' +
+                            'a 8ª requisição com header forjado retornou HTTP 429). ' +
+                            '<strong>Limitação conhecida, documentada e aceita:</strong> atrás dos load balancers do Render o limitador ' +
+                            'usa como chave o IP interno do proxy e não o IP público do usuário, então os limites acabam sendo compartilhados ' +
+                            'entre usuários. Para um ambiente de alto tráfego, a recomendação é uma lista de proxies confiáveis ou o header ' +
+                            '<code>CF-Connecting-IP</code>.',
                         label: 'Teste de regressão: dois modos de falha, duas funções',
                     },
                     b3: {
@@ -2055,7 +2113,7 @@ const qaTranslations = {
                             'A API do Google Gemini concluía a leitura com sucesso (cobrando pela requisição), mas o servidor enviava a resposta para o ID antigo (morto). ' +
                             'O usuário ficava preso em uma tela de carregamento infinito. O agravante: o sistema de tolerância a falhas do frontend tentava reconectar e pedir a leitura novamente até 5 vezes. ' +
                             'Em um cenário de pico de acessos, cada usuário com instabilidade de rede custaria 5 chamadas pagas à API, ' +
-                            'sem gerar nenhum erro 500 nos logs do servidor. Um prejuizo financeiro completamente silencioso.',
+                            'sem gerar nenhum erro 500 nos logs do servidor. Um prejuízo financeiro completamente silencioso.',
                         fix:
                             '<strong>A correção:</strong> Corrigir o roteamento substituindo <code>session.sid</code> por <code>request.sid</code> nos eventos do socket. ' +
                             'Para resolver a queda de rede implementei uma arquitetura de "Auto-Cura" (Self-Healing): a leitura concluída agora é salva no Redis usando o ID da sessão HTTP. ' +
@@ -2172,7 +2230,7 @@ const qaTranslations = {
                             'como segura para o Jinja2, mas não realiza nenhuma sanitização. A biblioteca ' +
                             '<code>markdown</code> do Python repassa HTML cru sem alterações. Se o Gemini ' +
                             'retornar uma tag <code>&lt;script&gt;</code> (ex: via um ataque de Prompt Injection), ela ' +
-                            'sobrevive ao pipeline, trafega pelo WebSocket e e executa via <code>.innerHTML</code> no navegador. A falha foi ' +
+                            'sobrevive ao pipeline, trafega pelo WebSocket e executa via <code>.innerHTML</code> no navegador. A falha foi ' +
                             'documentada e a correção implementada: passar o output por ' +
                             '<code>bleach.clean()</code> com uma allowlist estrita antes do <code>Markup()</code>.',
                         li3:
@@ -2184,7 +2242,7 @@ const qaTranslations = {
                         li4:
                             '<strong>Resposta Vazia da API (Filtros de Segurança):</strong> Confirmação de que a proteção explícita ' +
                             '<code>if not response.text: raise ValueError()</code> captura corretamente as rejeições dos filtros de segurança do Google. ' +
-                            'Nesses casos a API retorna um objeto de resposta HTTP 200 válido, porém sem conteúdo de texto,  ' +
+                            'Nesses casos a API retorna um objeto de resposta HTTP 200 válido, porém sem conteúdo de texto, ' +
                             'o que quebraria a aplicação se não houvesse uma validação semântica da resposta.',
                     },
                     e4: {
@@ -2204,28 +2262,23 @@ const qaTranslations = {
                             '<code>data[\'message\']</code> (acesso direto ao dicionário) em vez de ' +
                             '<code>data.get(\'message\', \'\')</code>, o que significa que um payload sem essa chave gerava um ' +
                             '<code>KeyError</code> não tratado, derrubando a greenlet do gevent. Segundo, não existia limite de tamanho de mensagem antes da chamada a ' +
-                            '<code>model.generate_content()</code>, permitindo que um atacante enviasse prompts de tamanho ilimitado para exaurir a cota da API (DoS).  ' +
+                            '<code>model.generate_content()</code>, permitindo que um atacante enviasse prompts de tamanho ilimitado para exaurir a cota da API (DoS). ' +
                             'Ambas as falhas foram corrigidas com validações estritas.',
                         li3:
                             '<strong>Bug do Indicador de Carregamento (Condição de Corrida na UI):</strong> ' +
                             'A função <code>removeLoadingIndicator()</code> mirava no seletor ' +
                             '<code>.chat-message:last-child</code>. Se o usuário enviasse uma segunda ' +
-                            'mensagem antes da primeira resposta da IA chegar, o balão do usuário se tornava o  ' +
+                            'mensagem antes da primeira resposta da IA chegar, o balão do usuário se tornava o ' +
                             '<code>last-child</code>. Consequentemente, o script falhava em encontrar a animação, deixando o primeiro balão de carregamento ' +
                             'permanentemente órfão e travado no histórico do chat. ' +
                             'O bug foi corrigido alterando a lógica para buscar a classe específica do indicador, ' +
                             'independentemente da sua posição no DOM.',
                         li4:
                             '<strong>Falha de API no Chat (Recuperação de Estado):</strong> Teste do handler de exceção ' +
-                            '<code>background_chat</code> utilizando falhas mockadas da API do Gemini.  ' +
+                            '<code>background_chat</code> utilizando falhas mockadas da API do Gemini. ' +
                             'O objetivo foi verificar se um evento <code>receive_message</code> contendo uma mensagem de erro amigável é emitido em caso de falha. ' +
                             'Se o bloco <code>except</code> falhasse silenciosamente, o indicador de carregamento do cliente ' +
                             'giraria indefinidamente, deixando o usuário sem um caminho de recuperação.',
-                        li5:
-                            '<strong>Limitação de Taxa do Chat:</strong> Verificação da implementação de um limitador de taxa ' +
-                            'de janela deslizante em memória (<code>is_rate_limited()</code>). Essa arquitetura customizada foi necessária porque o decorador ' +
-                            '<code>@limiter.limit</code> do Flask-Limiter protege apenas rotas HTTP, sendo completamente "cego" a eventos do Socket.IO. ' +
-                            'O teste confirmou que o handler <code>handle_message</code> intercepta e bloqueia com sucesso usuários que tentam enviar mensagens em massa (Spam/DoS). ',
                     },
                     e5: {
                         focus:
@@ -2233,7 +2286,7 @@ const qaTranslations = {
                             'sessão, aplicação de CSP (Content Security Policy), autenticação WebSocket e isolamento de usuários concorrentes.',
                         li1:
                             '<strong>Limitação de Taxa por IP (Rate Limiting):</strong> Verificação de que o decorador ' +
-                            '<code>@limiter.limit</code> do Flask-Limiter em <code>/results</code> corretamente o status ' +
+                            '<code>@limiter.limit</code> do Flask-Limiter em <code>/results</code> retorna corretamente o status ' +
                             '<code>HTTP 429</code> (Too Many Requests) após o limite configurado. O teste validou a injeção dinâmica de limites baseada ' +
                             'em ambiente: 200 requisições/minuto em desenvolvimento ' +
                             'e 5 requisições/minuto em produção (controlado pela flag <code>is_production</code>).',
@@ -2251,7 +2304,7 @@ const qaTranslations = {
                         li4:
                             '<strong>Isolamento de Dados (Concorrência e Race Conditions):</strong> Execução de dois ' +
                             'clientes de teste independentes disparando requisições simultâneas contra <code>/process_form</code>. ' +
-                            ' O objetivo foi verificar se os dados <code>intencao</code>, ' +
+                            'O objetivo foi verificar se os dados <code>intencao</code>, ' +
                             '<code>selected_cards</code> são estritamente vinculados ao ID de sessão no Redis, ' +
                             'garantindo que não haja vazamento de estado entre usuários. Também foi testada a condição de corrida (race condition) ' +
                             "entre múltiplas abas abertas no mesmo navegador, validando a integridade das escritas em " +
@@ -2259,14 +2312,21 @@ const qaTranslations = {
                         li5:
                             '<strong>Ciclo de Vida e Expiração da Sessão:</strong> Teste da configuração ' +
                             '<code>SESSION_PERMANENT=False</code>. A verificação confirmou que o backend gera um cookie sem os atributos ' +
-                            '<code>Expires</code> ou <code>Max-Age</code>. Isso o transforma em um verdadeiro "cookie de sessão de navegador", que é destruído pelo sistema operacional assim que o navegador é fechado, ' +
+                            '<code>Expires</code> ou <code>Max-Age</code>. Isso o transforma em um verdadeiro "cookie de sessão de navegador", que é descartado pelo próprio navegador assim que ele é fechado, ' +
                             'um requisito crítico de privacidade para proteger dados de usuários em computadores compartilhados. ',
+                        li6:
+                            '<strong>Proteção de Privacidade de Aba (Session Storage Guard):</strong> A rota ' +
+                            '<code>/clear_session</code>, introduzida para dar suporte à detecção de nova aba baseada em ' +
+                            '<code>sessionStorage</code> em cartas.html e results.html, foi auditada especificamente quanto à segurança. O teste verificou ' +
+                            'que a rota é <code>@csrf.exempt</code> (necessário porque o JS dispara o fetch antes de qualquer token estar disponível no DOM), ' +
+                            'aceita estritamente o método POST, limpa completamente todas as chaves da sessão no Redis ' +
+                            'e retorna um JSON válido. Qualquer falha nessas restrições representaria um vetor distinto para ' +
+                            'crashes no cliente ou vazamento de dados entre usuários.',
                     },
                     e6: {
                         focus:
                             'Avaliação do comportamento de renderização específico para mobile, semântica de eventos de ' +
-                            'toque e o mecanismo de privacidade de aba introduzido para lidar com casos de ' +
-                            'uso de dispositivos compartilhados.',
+                            'toque e layout responsivo em diferentes tamanhos de viewport.',
                         li1:
                             '<strong>Bloqueio de Orientação (Landscape Guard):</strong> Teste do overlay ' +
                             '<code>#rotate-message</code> controlado por uma regra CSS <code>@media ' +
@@ -2276,7 +2336,7 @@ const qaTranslations = {
                             '<strong>Tratamento do Teclado Virtual Mobile:</strong> Teste da função de detecção ' +
                             '<code>isTouchDevice()</code>, que utiliza <code>window.matchMedia("(hover: none) and ' +
                             '(pointer: coarse)")</code> em vez de User-Agent sniffing (uma prática obsoleta). A validação confirmou que a classe <code>keyboard-active</code> é aplicada ao ' +
-                            '<code>&lt;body&gt;</code> no evento de <code>focus</code>, acionando o comportamento <code>scrollIntoView</code> para  ' +
+                            '<code>&lt;body&gt;</code> no evento de <code>focus</code>, acionando o comportamento <code>scrollIntoView</code> para ' +
                             'evitar que o teclado virtual cubra a <code>textarea</code>. Também foi verificada a exclusão do <code>localhost</code> na lógica, ' +
                             'garantindo que o comportamento não dispare acidentalmente durante o desenvolvimento local em emuladores.',
                         li3:
@@ -2286,13 +2346,9 @@ const qaTranslations = {
                             '<code>width=device-width</code>), e que estados CSS <code>:hover</code> não ' +
                             'persistem após tocar e soltar ("hover pegajoso").',
                         li4:
-                            '<strong>Proteção de Privacidade de Aba (Session Storage Guard):</strong> A rota ' +
-                            '<code>/clear_session</code>, introduzida para dar suporte à detecção de nova aba baseada em ' +
-                            '<code>sessionStorage</code> em cartas.html e results.html, foi auditada especificamente quanto à segurança. O teste verificou  ' +
-                            'que a rota é <code>@csrf.exempt</code> (necessário porque o JS dispara o fetch antes de qualquer token estar disponível no DOM), ' +
-                            'aceita estritamente o método POST, limpa completamente todas as chaves da sessão no Redis ' +
-                            'e retorna um JSON válido. Qualquer falha nessas restrições representaria um vetor distinto para ' +
-                            'para crashes no cliente ou vazamento de dados entre usuários.',
+                            '<strong>Responsividade da Grade de Cartas:</strong> Verificação de que a grade de 22 cartas quebra ' +
+                            'linha corretamente com flexbox em 320px, sem barra de rolagem horizontal, com alvos de toque de pelo menos ' +
+                            '44×44px e layouts corretos de <code>stage-3</code> e <code>stage-5</code> em viewports estreitos.',
                     },
                     e7: {
                         focus:
@@ -2315,7 +2371,7 @@ const qaTranslations = {
                         li3:
                             '<strong>Bfcache e Botão Voltar do Navegador:</strong> Documentação de ' +
                             'dessincronização de estado ao navegar de volta de <code>/results</code> para ' +
-                            "<code>/cartas</code> via botão Voltar do navegado. O Back-Forward Cache (bfcache) mantinha o DOM com as cartas viradas, " +
+                            "<code>/cartas</code> via botão Voltar do navegador. O Back-Forward Cache (bfcache) mantinha o DOM com as cartas viradas, " +
                             'mas o contador JavaScript <code>clickedCards</code> era resetado para 0 no recarregamento da página, criando uma vulnerabilidade lógica ' +
                             'que potencialmente permitia ao usuário exceder seu limite original de cartas.',
                         li4:
@@ -2334,19 +2390,19 @@ const qaTranslations = {
                     e8: {
                         focus:
                             'Auditoria de superfícies de ataque não cobertas pelo Épico 5, incluindo os headers de segurança padrão do ' +
-                            'Flask-Talisman, a política de CORS do WebSocket, a configuração de nonce da CSP(Content Security Policy) e ' +
+                            'Flask-Talisman, a política de CORS do WebSocket, a configuração de nonce da CSP (Content Security Policy) e ' +
                             'vazamentos de ferramentas de desenvolvimento.',
                         li1:
                             '<strong>Headers de Segurança do Talisman:</strong> Verificação da presença e eficácia dos headers ' +
                             '<code>X-Frame-Options: SAMEORIGIN</code> (mitigação de Clickjacking), ' +
                             '<code>X-Content-Type-Options: nosniff</code> (mitigação de MIME sniffing) e ' +
                             '<code>Referrer-Policy</code> em todas as rotas. O teste incluiu a ' +
-                            'validação desses headers nos dois caminhos de código de resposta de erro (o 404 baseado em redirecionamento e o 404 de  ' +
+                            'validação desses headers nos dois caminhos de código de resposta de erro (o 404 baseado em redirecionamento e o 404 de ' +
                             'arquivo estático repassado), garantindo que páginas de erro não se tornem vetores de ataque.',
                         li2:
                             '<strong>CORS Wildcard (Vulnerabilidade Confirmada):</strong> A configuração ' +
-                            '<code>cors_allowed_origins="*"</code> estava fixado incondicionalmente no ' +
-                            'código original, permitindo que qualquer site externo estabelecesse um handshake  ' +
+                            '<code>cors_allowed_origins="*"</code> estava fixada incondicionalmente no ' +
+                            'código original, permitindo que qualquer site externo estabelecesse um handshake ' +
                             'WebSocket. Combinado com a ausência de validação CSRF no evento <code>send_message</code>, isso ' +
                             'criava um caminho de exploração confirmado de Sequestro de WebSocket entre Sites ' +
                             '(CSWSH), em que a página de um atacante podia consumir silenciosamente a cota da ' +
@@ -2354,8 +2410,8 @@ const qaTranslations = {
                             'ao domínio de produção, condicionado pela flag <code>is_production</code>.',
                         li3:
                             '<strong>Configuração Incorreta do Nonce da CSP (Vulnerabilidade ' +
-                            'Confirmada):</strong> A variável <code>g.nonce</code> era gerado a cada requisição e ' +
-                            'aplicado às tags script, mas o Talisman não havia sido inicializado com o parâmetro ' +
+                            'Confirmada):</strong> A variável <code>g.nonce</code> era gerada a cada requisição e ' +
+                            'aplicada às tags script, mas o Talisman não havia sido inicializado com o parâmetro ' +
                             '<code>content_security_policy_nonce_in=[\'script-src\']</code>, e a diretiva ' +
                             '<code>\'unsafe-inline\'</code> permanecia ativa no <code>script-src</code>. O nonce ' +
                             'era cosmético, o navegador o ignorava completamente porque ' +
@@ -2364,10 +2420,10 @@ const qaTranslations = {
                             '<code>unsafe-inline</code> e a integração nativa do nonce via Talisman.',
                         li4:
                             '<strong>Brecha de CSRF em <code>send_message</code> (Vulnerabilidade Confirmada):</strong> O evento ' +
-                            '<code>handle_generation</code> chamava <code>validate_csrf()</code>, mas o evento  ' +
+                            '<code>handle_generation</code> chamava <code>validate_csrf()</code>, mas o evento ' +
                             '<code>handle_message</code> não. Uma conexão WebSocket estabelecida podia enviar prompts de chat ilimitados ' +
                             'diretamente para a API do Gemini sem validação de token. O bug foi documentado e ' +
-                            'corrigido com as alterações de código exatas necessárias tanto no backend  ' +
+                            'corrigido com as alterações de código exatas necessárias tanto no backend ' +
                             '(validação) quanto no frontend (injeção do token no payload).',
                         li5:
                             '<strong>Vazamento de URL de Desenvolvimento na CSP de Produção:</strong> A ' +
@@ -2376,6 +2432,14 @@ const qaTranslations = {
                             'Uma condição invertida ou ausente colocaria <code>http://localhost:3000</code> ' +
                             'na allowlist da CSP de produção, criando uma potencial superfície de bypass de CSP baseada em SSRF (Server-Side Request Forgery). ' +
                             'O teste confirmou que o ambiente de produção está limpo de artefatos de desenvolvimento.',
+                        li6:
+                            '<strong>Limitação de Taxa em Eventos WebSocket (Vulnerabilidade Confirmada):</strong> Um teste de estresse com ' +
+                            '200 eventos <code>send_message</code> não produziu nenhum <code>HTTP 429</code>, porque o decorador ' +
+                            '<code>@limiter.limit</code> do Flask-Limiter cobre apenas rotas HTTP e é completamente "cego" a eventos do Socket.IO. ' +
+                            'A correção foi um limitador customizado de janela deslizante em memória (<code>is_rate_limited()</code>, ' +
+                            '10 mensagens por 60 segundos por sessão, baseado em um <code>defaultdict</code>). Verificação: 12 mensagens ' +
+                            'foram enviadas em paralelo e exatamente 10 respostas de IA foram recebidas, com os logs do backend confirmando ' +
+                            'que as tentativas 11 e 12 foram bloqueadas.',
                     },
                     e9: {
                         focus:
@@ -2386,7 +2450,7 @@ const qaTranslations = {
                             '<strong>Resiliência do WebSocket:</strong> Simulação de quedas bruscas de rede no meio da geração da leitura ' +
                             'usando o painel de Network Throttling do Chrome. O teste confirmou a resolução de um bug anterior de carregamento infinito, ' +
                             'validando a nova arquitetura de reconexão que entrega leituras em cache ao restabelecer o sinal. ' +
-                            'Uma limitação arquitetural conhecida foi documentada como Wont Fix: ' +
+                            'Uma limitação arquitetural conhecida foi documentada como Won\'t Fix: ' +
                             'duas abas compartilhando a mesma sessão de navegador podem receber eventos ' +
                             '<code>generation_complete</code>, pois os SIDs do Socket.IO são por conexão, ' +
                             'e não por sessão HTTP.',
@@ -2409,22 +2473,22 @@ const qaTranslations = {
                         li4:
                             '<strong>Leitor de Tela e ARIA:</strong> Os 22 botões de carta não tinham rótulo ' +
                             '(<code>&lt;button&gt;</code> sem conteúdo de texto), sendo anunciados por ' +
-                            'leitores de tela apenas como "botão", sem contexto, foi corrigido adicionando ' +
+                            'leitores de tela apenas como "botão", sem contexto; foi corrigido adicionando ' +
                             'atributos dinâmicos <code>aria-label</code> via Jinja2. A div ' +
-                            '<code>#loading-message</code> não tinha uma Live Region ARIA, deixando os leitores de ' +
-                            'tela não recebiam nenhuma notificação quando a IA terminava de gerar, foi corrigido ' +
+                            '<code>#loading-message</code> não tinha uma Live Region ARIA, então os leitores de ' +
+                            'tela não recebiam nenhuma notificação quando a IA terminava de gerar; foi corrigido ' +
                             'adicionando <code>role="status"</code> e <code>aria-live="polite"</code>. O ' +
                             'contraste de cor medido foi de 3.31:1 para botões de carta inativos, atendendo ' +
                             'ao padrão WCAG AA para componentes de UI.',
                         li5:
-                            '<strong>Benchmarks de Performance:</strong> Estabelecidas linhas de base de SLA ' +
-                            'de produção: TTFB (Time to First Byte) para a Home em 968ms (dentro da meta de 1000ms), ' +
-                            'TTI (Time to Interactive) para <code>/cartas</code> melhorado após uma redução de 46% no tamanho dos ' +
-                            'assets (262KB PNG → 140KB WebP). A geração de leituras de IA teve média de 5–9 ' +
-                            'segundos em 10 execuções, respostas do chat tiveram média de 3–5 segundos. Um ' +
-                            'teste de stress com 5 usuários concorrentes mostrou um aumento médio de latência ' +
-                            'de 63% em relação à linha de base, documentado como uma degradação aceitável ' +
-                            '(Graceful Degradation) para a implantação atual de instância única no Render.',
+                            '<strong>Benchmarks de Performance:</strong> Estabelecidas linhas de base de SLA de produção: ' +
+                            'TTFB (Time to First Byte) da Home em 968ms (dentro da meta de 1000ms). ' +
+                            'Uma redução de 46% no tamanho dos assets (262KB PNG → 140KB WebP) levou o TTI (Time to Interactive) ' +
+                            'de <code>/cartas</code> a 4,1s em uma auditoria mobile do Lighthouse, acima da meta de 3s e ' +
+                            'aceito como linha de base de produção. A geração de leituras de IA teve média de 6,78s (P95 8,10s) ' +
+                            'em 10 execuções; as respostas do chat tiveram média de 4,45s (P95 6,88s). Um teste de stress com 5 usuários concorrentes ' +
+                            'mostrou um aumento médio de latência de cerca de 8,4% sobre a linha de base (7,35s vs 6,78s), ' +
+                            'dentro da meta de degradação graciosa de 10–20%, sem erros nem esgotamento de conexões do Redis.',
                     },
                 },
                 diagram: {
@@ -2447,7 +2511,7 @@ const qaTranslations = {
                     tagIpSpoof: 'FALSIF. IP',
                     tagWsHijack: 'SEQUESTRO WS',
                     tagJsInject: 'INJEÇÃO JS',
-                    tagDeadSid: 'Dead Sid',
+                    tagDeadSid: 'DEAD SID',
                     legendGlobalMutTitle: 'Mutação Global',
                     legendGlobalMutDesc:
                         'dict TAROT_CARDS mutado in-place, requisições gevent concorrentes corrompem o ' +
@@ -2475,7 +2539,7 @@ const qaTranslations = {
                 intro1:
                     'O <strong>Brasil 2040</strong> é uma aplicação RAG (Retrieval-Augmented Generation) com arquitetura própria de recuperação de dados, distanciando-se de um ' +
                     'simples wrapper de chatbot. O assistente responde exclusivamente com base em relatórios climáticos do governo brasileiro. ' +
-                    'São 12 PDFs e 400 MB de dados que extraí, processei (chunking) e vetorizei (embeddings) ' +
+                    'São 42 PDFs e 400 MB de dados que extraí, processei (chunking) e vetorizei (embeddings) ' +
                     'usando o modelo <strong>multilingual-e5-large</strong> em um notebook Kaggle com GPU. Toda resposta ' +
                     'gerada precisa ser rastreável até os vetores armazenados no banco Supabase (pgvector), recuperados por ' +
                     'um backend FastAPI desenvolvido para este projeto. O modelo Gemini processa a geração do texto, mas os documentos atuam como a única fonte da verdade (ground truth). ' +
@@ -2489,16 +2553,18 @@ const qaTranslations = {
                     'a validação cobriu a precisão do backend e a resiliência do frontend de forma independente.',
                 tldr: {
                     label: 'TL;DR',
-                    li1: 'Pipeline de avaliação com LLM-as-judge em 4 estágios no CI: retrieval, ' +
-                        'fidelidade, armadilhas de alucinação e regressão de prompt, rodado contra um ' +
-                        'golden-set de 30 perguntas em 8 categorias, com fidelidade julgada em dois limiares.',
+                    li1: 'Pipeline de avaliação em 4 estágios (LLM-as-judge mais checagens programáticas), rodado como 5 jobs de CI: retrieval, ' +
+                        'fidelidade, armadilhas de alucinação e regressão de prompt, contra um golden-set de 29 perguntas ' +
+                        'em 16 categorias. Os testes de fidelidade e regressão chamam o endpoint /chat de produção, então ' +
+                        'editar o prompt real muda os resultados.',
                     li2: 'O agente ScoutQA rodou 30 minutos na interface real, cobrindo ' +
-                        'navegação, filtros, KPIs e o fluxo de fora de escopo,o tipo de teste ' +
+                        'navegação, filtros, KPIs e o fluxo de fora de escopo, o tipo de teste ' +
                         'exploratório que a suíte de eval, presa à API, não faz. Foi assim que apareceu ' +
                         'um bug de integridade de dados que nenhum teste automatizado tinha sido escrito para pegar.',
-                    li3: 'A suíte de eval garante a correção semântica da IA a cada commit. O agente ' +
-                        'ScoutQA cobre o que nenhum script foi escrito para checar. Nenhum dos dois ' +
-                        'substitui o outro.',
+                    li3: 'A suíte de eval verifica a correção semântica da IA, e o agente ScoutQA cobre o que nenhum script ' +
+                        'foi escrito para checar. Nenhum dos dois substitui o outro. Uma auditoria dos meus próprios evals ' +
+                        'também achou testes que não podiam falhar (cópia desatualizada do prompt, skips, "recusa = aprovado"); ' +
+                        'depois das correções eles exercitam o prompt de produção.',
                 },
                 links: {
                     liveApp: 'Ver Aplicação ao Vivo',
@@ -2510,7 +2576,7 @@ const qaTranslations = {
                     evalStack: 'Stack de Avaliação:',
                     dimensions: 'Dimensões Testadas:',
                 },
-                ciLabel: 'Os 4 jobs de avaliação passando no GitHub Actions',
+                ciLabel: 'Os 5 jobs de avaliação passando na última execução do GitHub Actions',
                 sections: {
                     systemIntro:
                         '<strong>O que torna isso diferente de testar um chatbot:</strong> A principal diferença ' +
@@ -2538,8 +2604,10 @@ const qaTranslations = {
                     problem1Body:
                         'O método padrão <code>get_text("text")</code> da biblioteca PyMuPDF frequentemente ignora ou desestrutura números contidos dentro de ' +
                         'células de tabela. Para corrigir isso adicionei uma etapa de extração explícita utilizando <code>find_tables()</code> por ' +
-                        'página, anexando o conteúdo da tabela como texto estruturado antes do chunking. Sem ' +
-                        'essa validação, dados críticos como as probabilidades de déficit hídrico (99%, 74%) simplesmente nunca entrariam no banco vetorial.',
+                        'página, anexando o conteúdo da tabela como texto estruturado antes do chunking. ' +
+                        'Sem essa etapa, números que existem só em tabelas nunca chegariam ao banco vetorial. ' +
+                        'Um limite permanece: números que existem apenas dentro de figuras (imagens) continuam invisíveis ao pipeline. ' +
+                        'Uma auditoria dos evals achou um caso assim, o risco de déficit de 74%-99% do subsistema SE/CO.',
                     problem2Head: 'Problema 2: Regex destruindo decimais brasileiros',
                     problem2Body:
                         'Um padrão de limpeza comum em tutoriais de pré-processamento de NLP (ex: <code>\\b\\w{1,2}\\b</code> para remover stop words curtas) estava destruindo a ' +
@@ -2558,24 +2626,27 @@ const qaTranslations = {
                         'se o contexto recuperado estiver quebrado o LLM-as-a-Judge será incapaz de verificar a fidelidade da resposta.',
                     diagnosticLabel: 'Diagnóstico: verificar se os números sobrevivem antes do embedding',
                     evalStrategyIntro:
-                        'A suíte de automação é um pipeline de quatro estágios integrado ao GitHub Actions. O fluxo segue ' +
-                        'uma lógica de fail-fast: uma falha em qualquer estágio bloqueia a execução dos seguintes. Afinal não faz sentido ' +
-                        'avaliar a qualidade de uma resposta se os documentos errados foram recuperados do banco de dados. ',
+                        'A suíte de automação tem quatro estágios, rodados como cinco jobs no GitHub Actions. A recuperação (Retrieval) ' +
+                        'funciona como gate: fidelidade, latência e regressão só rodam se ela passar, porque não faz sentido avaliar a ' +
+                        'qualidade de uma resposta se os documentos errados foram recuperados. Fidelidade, armadilhas de alucinação e ' +
+                        'checagens de fora-de-escopo compartilham um job; a regressão de prompt tem o seu próprio.',
                     pipeline: {
                         stage1Num: 'Estágio 1: Recuperação (Retrieval)',
                         stage1Title: 'Fonte certa, termos certos',
                         stage1Body:
-                            'O teste aciona o endpoint <code>/search</code> em <code>top_k=5<c/ode> e <code>top_k=10</code>. Ele verifica se o arquivo de origem ' +
+                            'O teste aciona o endpoint <code>/search</code> em <code>top_k=5</code> e <code>top_k=10</code>. Ele verifica se o arquivo de origem ' +
                             'do chunk retornado corresponde à expectativa definida no golden-set (gabarito de testes). Um dos testes injeta uma pergunta em inglês ' +
                             'para validar se o modelo <code>multilingual-e5-large</code> consegue cruzar a barreira do idioma e ' +
-                            'recuperar os vetores corretos em um corpus exclusivamente em português.',
+                            'recuperar os vetores corretos em um corpus exclusivamente em português. ' +
+                            'Pelo menos 50% dos termos esperados também precisam aparecer no texto recuperado, e uma falha de conexão reprova o teste em vez de pulá-lo.',
                         stage2Num: 'Estágio 2: Fidelidade (Faithfulness)',
-                        stage2Title: '0,70 factual · 0,60 síntese',
+                        stage2Title: 'Real /chat · veredito + limiar',
                         stage2Body:
-                            'O pipeline gera uma resposta real da API do Gemini e envia a tríade (Pergunta, Resposta Gerada, ' +
-                            'Contexto Recuperado) para o LLM-as-a-Judge. Foram definidos dois limiares de aprovação distintos para lidar com a incerteza inerente da IA: uma resposta ' +
-                            'factual exige alta precisão (0,70), enquanto uma resposta de síntese pode ser fiel às fontes, ' +
-                            'mas estruturada de forma diferente do que o juiz espera (0,60).',
+                            'O teste chama o endpoint <code>/chat</code> real (mesmo SYSTEM_PROMPT, temperatura e <code>top_k=10</code> da ' +
+                            'produção) e envia a tríade (pergunta, resposta gerada, os mesmos 10 chunks recuperados) para o LLM-as-a-Judge. ' +
+                            'Um caso só passa se o veredito não for "fail" e o score atingir o limiar. Perguntas de síntese têm um ' +
+                            'limiar 0,1 menor, pois podem ser fiéis às fontes mesmo estruturadas de forma diferente do que o juiz espera. ' +
+                            'Uma recusa pura com chunks recuperados falha, a menos que o caso do golden-set declare <code>allow_refusal</code>.',
                         stage3Num: 'Estágio 3: Armadilhas (Honeypots / Negative Testing)',
                         stage3Title: 'Ressalva ou falha',
                         stage3Body:
@@ -2584,25 +2655,26 @@ const qaTranslations = {
                             '<code>must_not_contain</code> (ex: números inventados) que são verificados programaticamente antes mesmo do juiz rodar. ' +
                             'Uma recusa correta da IA (admitindo que não possui a informação) pontua 1,0. Qualquer alucinação do modelo falha o teste.',
                         stage4Num: 'Estágio 4: Regressão (Drift Detection)',
-                        stage4Title: 'Deriva em duas direções',
+                        stage4Title: 'Âncoras + números-chave',
                         stage4Body:
-                            'O teste compara as respostas da execução atual contra uma linha de base (baseline) salva em um arquivo JSON no repositório. ' +
-                            'Termos-âncora ausentes capturam regressões de qualidade. Por outro lado, o surgimento de "números novos" ' +
-                            'que não estão na linha de base captura a falha mais sutil de um sistema RAG: uma mudança no ' +
-                            'system prompt que afrouxou involuntariamente as restrições factuais da IA.',
+                            'O teste chama o <code>/chat</code> real e compara com uma linha de base (baseline) capturada do mesmo endpoint e ' +
+                            'salva como JSON no repositório. O gate são as âncoras: os termos esperados do golden-set precisam aparecer e os ' +
+                            'números-chave da baseline precisam sobreviver, enquanto números novos ausentes da baseline sinalizam uma mudança ' +
+                            'de prompt que afrouxou as restrições factuais. A baseline guarda um hash do SYSTEM_PROMPT, então uma mudança de ' +
+                            'prompt gera um aviso para recapturá-la. A similaridade de texto é reportada, mas nunca barra.',
                     },
                     metrics: {
-                        m1: 'Perguntas do golden-set<br>em 8 categorias',
-                        m2: 'Dimensões julgadas<br>por resposta',
-                        m3: 'Jobs de CI/CD<br>a cada commit',
+                        m1: 'Perguntas do golden-set<br>em 16 categorias',
+                        m2: 'Dimensões do juiz<br>(cada teste usa 1–2)',
+                        m3: 'Jobs de CI/CD<br>sob demanda',
                         m4: 'Custo estimado<br>por consulta',
                     },
                     strategyResult:
-                        '<strong>Resultado:</strong> Recuperação vetorial com P95 abaixo de 5 segundos, estimativa de custo de tokens impressa ' +
-                        'no console a cada execução e um veredito de fidelidade garantido a cada push no repositório.',
+                        '<strong>Resultado:</strong> P95 de recuperação de 0,45 s (limite: 5 s), estimativa de custo de tokens impressa ' +
+                        'a cada execução e uma execução completa de 85 testes de eval mais 10 de regressão, todos passando.',
                     findingsIntro:
                         'O golden set (gabarito de testes) é a base de um sistema de avaliação de RAG confiável. ' +
-                        'Um gabarito mal projetado produz falsa confiança. As quatro categorias abaixo detalham onde ' +
+                        'Um gabarito mal projetado produz falsa confiança. Os achados abaixo detalham onde ' +
                         'a calibração foi mais complexa e o impacto de cada decisão arquitetural.',
                     agentIntro:
                         'Após a conclusão da suíte de avaliação automatizada (CI/CD) um agente autônomo (ScoutQA) recebeu uma ' +
@@ -2619,8 +2691,8 @@ const qaTranslations = {
                         'Durante a sessão exploratória o agente ScoutQA detectou que o contador de municípios na interface oscilava ' +
                         'entre 5.570 e 5.563 dentro da mesma sessão. ' +
                         'O agente percebeu isso lendo a tela ao longo de várias interações e notando a inconsistência numérica. ' +
-                        'Nenhuma avaliação de camada de API teria encontrado isso. Talvez nenhum teste automatizado tradicional ' +
-                        '(Cypress/Playwright) teria pego isso também, porque um engenheiro teria em escrever um teste específico ' +
+                        'Nenhuma avaliação de camada de API teria encontrado isso. Nenhum teste automatizado tradicional ' +
+                        '(Cypress/Playwright) teria pego isso também, porque ninguém pensou em escrever uma asserção específica ' +
                         'para verificar se o número mudava após o carregamento. É exatamente para isso que existe o teste exploratório.',
                     pipelineBugBody2:
                         'Uma investigação mais profunda revelou que não se tratava apenas de uma falha visual (glitch), ' +
@@ -2669,7 +2741,7 @@ const qaTranslations = {
                         row5Notes: 'Alternância rápida testada. Estatísticas atualizam corretamente, sem corrupção de estado na UI.',
                         row6Finding: 'Persistência de estado entre navegações',
                         row6Notes: 'Município selecionado + cultura/cenário preservados corretamente ao trocar de painéis.',
-                        row7Finding: 'Todos os 8 painéis de setor com KPIs corretos',
+                        row7Finding: 'Todos os 6 painéis de setor (+ Sobre) com KPIs corretos',
                         row7Notes: 'Valores como 16.7×, 99%, e −30% ENA verificados no painel de Energia contra a especificação.',
                     },
                     agentPlaceHead: 'ONDE O AGENTE SE JUSTIFICA (O VALOR DO TESTE AUTÔNOMO)',
@@ -2694,21 +2766,20 @@ const qaTranslations = {
                         'e o teste exploratório (Agente/Humano) é dono da descoberta. ' +
                         'O bug do contador de municípios exigiu um "olho" na tela renderizada. O veredito de fidelidade  ' +
                         'exigiu um juiz com acesso ao contexto vetorial recuperado. Nenhuma das ferramentas conseguia fazer o trabalho da outra.',
-                    ciCommitHead: 'O que roda a cada commit',
+                    ciCommitHead: 'O que roda a cada execução do workflow',
                     ciCommitBody:
-                        'O workflow <code>eval.yml</code> no GitHub Actions define cinco jobs interdependentes. Os testes de recuperação (Retrieval) rodam ' +
-                        'primeiro e atuam como um gate de bloqueio para as etapas seguintes. Se um embedding de chunk desviar do padrão ou um ' +
-                        'arquivo de origem for renomeado a recuperação falha e o LLM juiz nunca avaliará uma resposta ' +
-                        'baseada no contexto errado. A suíte de latência roda em paralelo com a de fidelidade, imprimindo uma estimativa de custo por consulta ' +
-                        '(Cost/Query) no log do job a cada execução, garantindo observabilidade financeira contínua.',
-                    ciRegressionHead: 'O que a regressão de prompt commita',
+                        'O workflow <code>evals.yml</code> no GitHub Actions (disparo manual: só a recuperação, ou a suíte completa com <code>all</code>) ' +
+                        'define cinco jobs. Os testes de recuperação (Retrieval) rodam primeiro e atuam como gate de bloqueio para os jobs ' +
+                        'seguintes. Se um embedding de chunk desviar do padrão ou um arquivo de origem for renomeado, a recuperação falha ' +
+                        'e o LLM juiz nunca avaliará uma resposta baseada no contexto errado. A suíte de latência roda em paralelo com a ' +
+                        'de fidelidade, imprimindo uma estimativa de custo por consulta no log do job a cada execução.',
+                    ciRegressionHead: 'O que a regressão de prompt mantém',
                     ciRegressionBody:
-                        'Cada execução de regressão gera e sobe um artefato <code>regression_diff.json</code>, um ' +
-                        'diff estruturado do que mudou entre as respostas atuais e a linha de base (baseline), contendo scores de similaridade e prévias das respostas. ' +
-                        'O histórico de como as respostas do sistema evoluíram ao longo do tempo torna-se auditável no nível do commit e ' +
-                        'não apenas no nível do deploy. Se uma mudança na janela de contexto triplicar a contagem  ' +
-                        'de tokens de entrada, o monitor de custo captura a anomalia no CI/CD ' +
-                        'antes que a fatura da API chegue no fim do mês.',
+                        'Cada execução de regressão gera e sobe um artefato <code>regression_diff.json</code>, um diff estruturado entre ' +
+                        'as respostas atuais e a linha de base (baseline), com scores de similaridade e prévias das respostas. A própria ' +
+                        'baseline é versionada no repositório, então uma mudança de prompt aparece como uma divergência de hash, e o diff ' +
+                        'de cada execução fica guardado como artefato do CI. Se uma mudança fizer o contexto recuperado (medido com ' +
+                        '<code>top_k=5</code>) passar do orçamento de 4.000 tokens, o teste de tokens falha.',
                     threeLayersHead: 'O MODELO ARQUITETURAL: TRÊS CAMADAS COM PROPRIEDADE CLARA',
                     threeLayersBody:
                         'A conclusão desta auditoria reforça que a qualidade em sistemas de IA exige uma arquitetura de testes em três camadas: ' +
@@ -2723,34 +2794,44 @@ const qaTranslations = {
                         'Ambas as abordagens foram estritamente necessárias para garantir a prontidão do sistema para produção.',
                     auditSuiteHead: 'Auditando os pontos cegos da própria suíte de avaliação',
                     auditSuiteBody:
-                        'Um badge verde no CI não significa que os testes rodaram, significa que nada ' +
-                        'falhou, essas duas coisas não são a mesma. Três padrões na suíte original ' +
-                        'deixavam essa diferença passar despercebida: 1) um <code>pytest.skip()</code> em erro ' +
-                        'de conexão aparecia idêntico a um teste aprovado no resumo do job, 2) um teste de ' +
-                        'latência convertia qualquer execução lenta em <code>xfail</code>, assumindo que era ' +
-                        '"variância do runner do CI", o que esconderia uma regressão real pra sempre, e 3) o ' +
-                        'job de avaliação completa excluía explicitamente o arquivo de regressão de ' +
-                        'prompt com <code>--ignore</code>, então a execução "completa" nunca rodava esse ' +
-                        'teste de fato. Os três foram corrigidos.',
+                        'Um badge verde no CI não significa que os testes rodaram, significa que nada falhou, e essas duas coisas não são a mesma. ' +
+                        'Dois padrões na suíte original tornavam essa diferença real: 1) um <code>pytest.skip()</code> em erro de conexão ' +
+                        'aparecia idêntico a um teste aprovado no resumo do job, e 2) um teste de latência convertia qualquer execução ' +
+                        'lenta em <code>xfail</code>, assumindo que era "variância do runner do CI", o que esconderia uma regressão real para sempre. ' +
+                        'Os problemas mais profundos estavam em outro lugar: os testes de fidelidade e regressão geravam respostas a partir de uma ' +
+                        'cópia desatualizada do system prompt (então editar o prompt de produção não mudava nada), o hash do prompt era ' +
+                        'calculado sobre o <code>app.js</code>, o limiar de fidelidade era anulado por qualquer veredito "pass" do juiz, e ' +
+                        '"as duas respostas são recusas" contava como aprovação. Tudo isso foi corrigido: skips por erro de conexão viraram ' +
+                        'falhas, a latência usa a mediana de três execuções, os testes chamam o endpoint real e uma recusa pura falha. ' +
+                        'Nada disso muda o que a IA responde. Muda se o pipeline merece confiança para notar quando algo para de funcionar. ' +
+                        '(A execução noturna completa continua excluindo o arquivo de regressão de propósito: ele tem job próprio, e rodá-lo ' +
+                        'duas vezes só gastaria cota da API.)',
+                    limitsHead: 'Limites conhecidos desta suíte',
+                    limitsBody:
+                        'O juiz é leniente (todos os scores de fidelidade registrados foram 1,00), por isso ele é combinado com checagens ' +
+                        'programáticas. Com temperatura 0,7 a redação das respostas varia muito, então a regressão usa âncoras como gate, ' +
+                        'e uma âncora pode falhar ocasionalmente só por variância. O teste de latência de ponta a ponta usa um prompt ' +
+                        'simplificado próprio, então mede tempo, não qualidade. Números que existem só em figuras dos PDFs ficam fora do RAG. ' +
+                        'A limpeza dos 802 chunks usou uma heurística de densidade de dígitos que também pode apagar chunks numéricos ' +
+                        'legítimos, e ainda não faz parte do pipeline de ingestão.',
                 },
                 findings: {
                     f1: {
                         title: '1. Armadilhas de Alucinação: <strong>Capturando fabricação confiante</strong>',
-                        category: 'hallucination_trap (Armadilhas de Alucinação)',
                         questions: '3 (hallucination_001 → 003)',
                         passCondition: 'Ressalva ou recusa explícita (pontua 1,0).',
                         p1:
                             '<strong>O problema:</strong> Três perguntas solicitam fatos que não ' +
                             'existem em nenhum documento fonte: "PIB agrícola de 2039", "El Niño de 2038" e ' +
                             '"Contagens de extinção de peixes no Rio São Francisco". Um LLM treinado com dados em ' +
-                            'scala da internet possui conhecimento prévio e pode gerar respostas altamente plausíveis para as três questões. ' +
+                            'escala da internet possui conhecimento prévio e pode gerar respostas altamente plausíveis para as três questões. ' +
                             'O teste verifica estritamente se o modelo não utiliza esse conhecimento externo, mantendo-se confinado ao contexto fornecido.',
                         p2:
                             '<strong>Comportamento do Juiz (LLM-as-a-Judge):</strong> A flag <code>should_hedge</code> marca ' +
                             'esses casos como cenários onde a recusa é a resposta desejada. O prompt do juiz ' +
                             'declara explicitamente: se a IA responder "Não encontrei essa informação nos ' +
                             'trechos fornecidos" a nota atribuída deve ser 1,0. Recusar-se a fabricar dados ' +
-                            'é o comportamento correto do sistema.',
+                            'é o comportamento correto do sistema, e não uma falha.',
                         p3:
                             '<strong>A proteção <code>must_not_contain</code> (Validação Determinística):</strong> Para evitar a dependência ' +
                             'exclusiva da interpretação do LLM juiz cada armadilha carrega termos proibidos que são verificados de forma programática. ' +
@@ -2760,30 +2841,36 @@ const qaTranslations = {
                     },
                     f2: {
                         title: '2. Calibração de Fidelidade: <strong>A decisão de design mais difícil</strong>',
-                        threshold: '0,70 factual e 0,60 síntese',
-                        questions: '14 (factuais + síntese)',
+                        threshold: '0,6 no CI (0,70 padrão) · −0,1 para síntese',
+                        questions: '16 factuais + síntese (24 com dificuldades estendidas)',
                         p1:
                             '<strong>O Problema de Calibragem (Falsos Negativos):</strong> Uma versão inicial do golden set ' +
                             'incluía a palavra "bilhões" como termo obrigatório para uma pergunta sobre o setor de energia. No entanto o system prompt ' +
                             'instrui o modelo a recusar a geração de números absolutos que não estejam ' +
                             'explicitamente presentes nos chunks recuperados. Um prompt rigoroso e seguro produz uma recusa ' +
                             'correta, mas um teste mal projetado marcaria essa recusa como falha. ' +
-                            'O campo notes no JSON rastreia o histórico dessa decisão arquitetural: <em>"Prompt rigoroso recusa valores absolutos que não estão nos ' +
-                            'chunks, removido \'bilhões\', mantidos o multiplicador e o nome do modelo como ' +
-                            'âncoras estáveis."</em>',
+                            'O campo notes no JSON rastreia o histórico dessa decisão arquitetural: <em>"Removido \'bilhões\' (prompt rigoroso recusa valores ' +
+                            'absolutos que não estão nos chunks) e \'8.5\' (o modelo usa \'cenário extremo\' em vez do rótulo RCP). ' +
+                            'Multiplicador 16,7× e nome do modelo HadGEM são âncoras estáveis."</em>',
                         p2:
                             '<strong>Por que utilizar dois limiares distintos:</strong> O juiz também é um LLM portanto compartilha os ' +
                             'mesmos modos de falha (como sensibilidade à formatação) do sistema sob teste. Um score de 0,75 não significa "75% ' +
                             'correto", significa que o juiz está razoavelmente confiante de que a resposta está ' +
-                            'fundamentada (grounded) no contexto. Perguntas de síntese (que exigem cruzar dados de múltiplos documentos) recebem uma barra de aprovação 10% mais baixa ' +
-                            '(0,60). Isso ocorre porque o raciocínio entre setores produz respostas estruturalmente diferentes do gabarito, ' +
+                            'fundamentada (grounded) no contexto. Perguntas de síntese (que exigem cruzar dados de múltiplos documentos) recebem uma barra de aprovação 0,1 mais baixa que a das perguntas factuais. ' +
+                            'Isso ocorre porque o raciocínio entre setores produz respostas estruturalmente diferentes do gabarito, ' +
                             'mas que ainda são factualmente fiéis às fontes. Os limiares duplos codificam a incerteza inerente aos LLMs de forma explícita ' +
                             'em vez de tratar os veredictos da IA como estritamente binários.',
+                        p3:
+                            '<strong>O que o juiz não enxerga:</strong> todos os scores de fidelidade impressos nos logs foram 1,00, ' +
+                            'e uma recusa sempre passa em fidelidade porque não afirma nada falso. Isso deixou uma pergunta legítima ' +
+                            '("qual setor é mais vulnerável?") receber a recusa de fora-de-escopo e ainda assim passar. A correção combina o juiz ' +
+                            'com checagens programáticas: detecção de recusa pura e checagem de falso fora-de-escopo em todo caso de fidelidade, ' +
+                            'termos-âncora na suíte de regressão e <code>must_not_contain</code> nas armadilhas. O prompt foi corrigido e a pergunta agora recebe uma resposta de verdade.',
                     },
                     f3: {
                         title: '3. Regressão de Prompt: <strong>Detecção de deriva em duas direções</strong>',
                         mode: 'Capturar → Comparar',
-                        artifact: 'regression_diff.json (Commitado no repositório)',
+                        artifact: 'Baseline commitada; diff enviado como artefato do CI',
                         p1:
                             '<strong>Detecção de Deriva (Drift Detection) em Duas Direções:</strong> Ajustar as instruções de um system prompt para corrigir respostas fora de escopo ' +
                             'frequentemente quebra, de forma acidental, respostas factuais que já funcionavam. ' +
@@ -2792,11 +2879,15 @@ const qaTranslations = {
                             'Segundo busca por números novos não mapeados, o que captura uma falha muito mais sutil: se a IA começar a gerar números ' +
                             'que não existiam na linha de base (baseline), isso indica que uma mudança no prompt afrouxou involuntariamente as ' +
                             'restrições factuais, permitindo que o modelo começasse a alucinar dados quantitativos.',
+                        p2:
+                            '<strong>Por que âncoras, e não similaridade:</strong> com temperatura 0,7, a primeira comparação logo após capturar ' +
+                            'a baseline (mesmo prompt, mesma recuperação) deu apenas 0,26 a 0,40 de similaridade de texto. Isso é variância ' +
+                            'do modelo, não regressão, então o <code>regression_diff.json</code> é apenas informativo e o gate usa termos-âncora e números-chave.',
                         label: 'Teste de regressão (Verificação de números em duas direções):',
                     },
                     f4: {
                         title: '4. Tratamento de Fora-de-Escopo: <strong>Aplicação de escopo sob o juiz</strong>',
-                        questions: '2 (Receita de bolo + Previsão da Copa do Mundo)',
+                        questions: '2 (Receita de brigadeiro + Previsão da Copa do Mundo)',
                         passCondition: 'Score de segurança ≥ 0,60 OU ≥ 2 frases de ressalva correspondidas.',
                         p1:
                             '<strong>Intenção de Design (Guardrailing):</strong> O system prompt contém uma instrução de redirecionamento explícita: ' +
@@ -2818,14 +2909,12 @@ const qaTranslations = {
                     f5: {
                         title: '5. Debugging em Produção: <strong>Dois bugs escondidos em resposta errada</strong>',
                         trigger: 'Uma única pergunta da UI voltando com recusa indevida',
-                        questions: '33 de 86 sinalizadas, reduzidas a 2 gaps reais',
+                        questions: '33 de 86 recusadas: 5 corretas, 28 falsas; 2 gaps reais restam',
                         corpus: '802 de 2.203 chunks, ou 36%, eram lixo',
                         p1:
-                            '<strong>O que disparou o problema:</strong> uma pergunta sugerida na UI (Qual ' +
-                            'cultura tem maior potencial de adaptação ao aquecimento?) voltava sempre com ' +
-                            '"Não encontrei essa informação nos trechos fornecidos", mesmo o relatório ' +
-                            'cobrindo exatamente isso. O golden set não pegou esse caso porque nenhuma ' +
-                            'das 30 perguntas dele batia com a fraseologia que a própria UI sugere ao usuário.',
+                            '<strong>O que disparou o problema:</strong> uma pergunta sugerida na UI continuava respondendo que a informação ' +
+                            'não estava nos trechos fornecidos, mesmo o relatório cobrindo exatamente isso. O golden set não pegou esse caso porque nenhuma ' +
+                            'das perguntas dele batia com a fraseologia que a própria UI sugere ao usuário.',
                         p2:
                             '<strong>Isolando a camada:</strong> o primeiro passo foi descartar se era ' +
                             'problema de retrieval ou de geração, dois modos de falha que parecem idênticos ' +
@@ -2835,11 +2924,11 @@ const qaTranslations = {
                             'indicava que o bug estaria no prompt e não no banco vetorial.',
                         p3:
                             '<strong>Bug 1, deriva de escopo no prompt:</strong> a lista de temas do system ' +
-                            'prompt só citava agricultura. O corpus na verdade cobre seis setores (energia, ' +
+                            'prompt só citava agricultura. O corpus na verdade cobre seis setores (agricultura, energia, ' +
                             'recursos hídricos, transporte, costa, drenagem urbana) mas o modelo lia aquela ' +
                             'lista como exaustiva e redirecionava qualquer coisa fora de agro como "fora do ' +
-                            'escopo", mesmo com os chunks certos ali no contexto. 33 das 86 perguntas ' +
-                            'falhavam por esse motivo.',
+                            'escopo", mesmo com os chunks certos ali no contexto. Junto com o Bug 2 abaixo, isso produziu ' +
+                            '28 recusas falsas em 86 perguntas (33 recusas no total, 5 delas corretas).',
                         p4:
                             '<strong>Bug 2, chunks de lixo agindo como atratores de similaridade:</strong> uma ' +
                             'varredura separada no corpus inteiro (proporção de palavras únicas, densidade ' +
@@ -2850,12 +2939,32 @@ const qaTranslations = {
                             'alta contra quase qualquer pergunta e ficavam na frente do chunk que de fato ' +
                             'respondia.',
                         p5:
-                            '<strong>Correção e verificação:</strong> a seção de escopo foi reescrita citando ' +
-                            'todos os setores, os 802 chunks foram apagados do bando de dados no Supabase depois de uma conferência manual ' +
-                            'de contagem e o mesmo conjunto de 86 perguntas rodou de novo. Os casos ' +
-                            'sinalizados caíram de 33 pra 2 e os dois que sobraram eram gaps reais do corpus ' +
-                            '(uma pergunta citava uma bacia hidrográfica que o relatório nunca cobre)',
+                            '<strong>Correção e verificação:</strong> a seção de escopo foi reescrita citando todos os setores, os 802 chunks ' +
+                            'foram apagados do banco de dados no Supabase depois de uma conferência manual de contagem e o mesmo conjunto de ' +
+                            '86 perguntas rodou de novo. Das 33 recusas, 5 eram corretas (armadilhas e fora-de-escopo), sobrando 28 recusas falsas; ' +
+                            'depois das correções restaram apenas 2, ambas lacunas reais do corpus. As duas correções foram aplicadas juntas, ' +
+                            'então o efeito de cada uma isoladamente não foi medido.',
                         label: 'Diagnóstico: separando falha de retrieval de falha de prompt:',
+                    },
+                    f6: {
+                        title: '6. Auditando os Evals: <strong>Uma baseline que era, ela mesma, uma recusa</strong>',
+                        trigger: 'Auditoria da própria suíte de eval',
+                        resultKey: 'Resultado',
+                        result: 'Dado só em figura, pergunta removida',
+                        p1:
+                            '<strong>O que estava errado:</strong> os testes de regressão copiavam um prompt antigo e mais rígido em vez de chamar ' +
+                            'o endpoint de produção, calculavam o hash do <code>app.js</code> como se fosse o prompt e tratavam "as duas respostas ' +
+                            'são recusas" como aprovação. A baseline da pergunta sobre risco de déficit do SE/CO (esperado 74%-99%) era uma recusa, ' +
+                            'então o caso passava sem checar nada.',
+                        p2:
+                            '<strong>A correção:</strong> os testes agora chamam o <code>/chat</code> real com as configurações de produção, o hash ' +
+                            'cobre o SYSTEM_PROMPT de verdade e uma recusa pura falha. Com isso, o caso falhou de verdade, nas âncoras esperadas ' +
+                            '(74% e 99%).',
+                        p3:
+                            '<strong>Causa raiz:</strong> dois scripts procuraram o número em todos os chunks de Energia no banco e nos PDFs de ' +
+                            'origem (texto e tabelas). Ele não existia em nenhum dos dois. A explicação mais provável é que ele aparece apenas dentro de uma figura ' +
+                            '(o relatório tem uma legenda "Figura 35" para esse gráfico), que a extração de texto nunca enxerga. A pergunta foi removida ' +
+                            'do golden set e o limite documentado, já que o dashboard mostra um número que o chatbot não consegue confirmar.',
                     },
                 },
                 diagram1: {
@@ -2895,7 +3004,7 @@ const qaTranslations = {
                     arrowPipelineToQaX1: '430', arrowPipelineToQaY1: '170', arrowPipelineToQaX2: '488', arrowPipelineToQaY2: '170',
                     testsLabelX: '460', testsLabelY: '163',
                     source: 'Fonte',
-                    pdfs: '12 PDFs',
+                    pdfs: '42 PDFs',
                     pdfsSub: 'Pesquisa gov. brasileiro',
                     kaggleHead: 'Notebook Kaggle com GPU',
                     kaggleSub1: 'PyMuPDF + extração de tabelas',
@@ -2913,7 +3022,7 @@ const qaTranslations = {
                     fastapiHead: 'HuggingFace Spaces',
                     fastapi: 'FastAPI',
                     fastapiSub1: 'vetorização da pergunta',
-                    fastapiSub2: 'busca por cosseno top_k=5',
+                    fastapiSub2: 'busca por cosseno top_k=10',
                     fastapiSub3: 'streaming via Gemini',
                     generation: 'Geração',
                     geminiApi: 'API do Gemini',
@@ -2982,7 +3091,7 @@ const qaTranslations = {
                     g2: 'Red-Teaming adversarial',
                     g3: 'Limites de taxa (Rate Limiting) e cotas de tokens',
                     g4: 'Eventos mobile / Gestos de toque',
-                    g5: 'Verificação de streaming do chat via WebSockett',
+                    g5: 'Verificação de streaming do chat (HTTP)',
                     gapsNote1: 'Mitigação: Exige testes',
                     gapsNote2: 'E2E dedicados via Playwright + Red-Team manual',
                 },

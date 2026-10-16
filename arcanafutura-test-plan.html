@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Arcana Futura — QA Backlog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Signika+Negative:wght@200;400;700&family=Sora:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fdf8eb;
+            --text: #2a2a2a;
+            --legend: #4c4949;
+            --accent: #fd231a;
+            --border: #363636;
+            --p: "Sora", sans-serif;
+            --s: "Signika Negative", sans-serif
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: var(--p);
+            color: var(--text);
+            background: var(--bg);
+            overflow-x: hidden
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px
+        }
+
+        .hero {
+            background: var(--text);
+            color: var(--bg);
+            padding: 12vh 24px 10vh;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+            overflow: hidden
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            width: 60vmax;
+            height: 60vmax;
+            right: -20vmax;
+            top: -30vmax;
+            border: 1px solid rgba(253, 35, 26, .5);
+            border-radius: 50%
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            width: 30vmax;
+            height: 30vmax;
+            left: -10vmax;
+            bottom: -18vmax;
+            background: var(--accent);
+            opacity: .9;
+            border-radius: 50%
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: .85;
+            font-family: var(--s)
+        }
+
+        .light-text {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 400
+        }
+
+        .bold-text {
+            font-size: clamp(3rem, 10vw, 6.5rem);
+            font-weight: 700
+        }
+
+        .light-text,
+        .bold-text {
+            overflow: hidden;
+            display: block;
+            padding-bottom: .12em
+        }
+
+        .light-text span,
+        .bold-text span {
+            display: inline-block;
+            transform: translateY(110%);
+            animation: up .9s cubic-bezier(.2, .7, .2, 1) forwards
+        }
+
+        @keyframes up {
+            to {
+                transform: none
+            }
+        }
+
+        .hero p {
+            position: relative;
+            z-index: 1;
+            margin: 32px auto 0;
+            max-width: 620px;
+            font-weight: 300;
+            font-size: .95rem;
+            line-height: 1.7;
+            opacity: .85
+        }
+
+        .pill {
+            display: inline-block;
+            margin-top: 28px;
+            position: relative;
+            z-index: 1;
+            font-size: .7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid var(--bg);
+            padding: 7px 16px;
+            border-radius: 30px
+        }
+
+        section.blk {
+            padding: 72px 0;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .eyebrow {
+            font-size: .7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px
+        }
+
+        h2.t {
+            font-family: var(--s);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 12px
+        }
+
+        .lead {
+            font-weight: 300;
+            line-height: 1.7;
+            max-width: 680px;
+            color: var(--legend)
+        }
+
+        .flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 0;
+            margin-top: 40px;
+            border: 1px solid var(--border)
+        }
+
+        .flow>div {
+            padding: 26px;
+            border-right: 1px solid var(--border);
+            position: relative
+        }
+
+        .flow>div:last-child {
+            border: 0
+        }
+
+        .flow strong {
+            font-family: var(--s);
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.1;
+            display: block;
+            margin: 10px 0 12px
+        }
+
+        .flow small {
+            font-size: .65rem;
+            letter-spacing: 2px;
+            color: var(--accent)
+        }
+
+        .flow p {
+            font-size: .8rem;
+            line-height: 1.6;
+            font-weight: 300
+        }
+
+        .bar {
+            display: flex;
+            height: 10px;
+            margin-top: 36px;
+            /* border: 1px solid var(--border) */
+        }
+
+        .bar i {
+            display: block;
+            height: 100%
+        }
+
+        /* .bar i{border-right:1px solid var(--bg)} */
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 22px;
+            margin-top: 12px;
+            font-size: .72rem;
+            color: var(--legend)
+        }
+
+        .legend i {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            margin-right: 6px;
+            border-radius: 50%
+        }
+
+
+        .tools {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border)
+        }
+
+
+        .tbar {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            padding: 20px 0
+        }
+
+        .ftoggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: none;
+            border: 0;
+            cursor: pointer;
+            color: var(--text);
+            font: 500 1rem var(--p);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            transition: color .3s
+        }
+
+        .ftoggle .plus {
+            font-size: 1.2rem
+        }
+
+        .fsum {
+            flex: 1;
+            min-width: 0;
+            font-size: .8rem;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: var(--accent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        #q {
+            flex: none;
+            width: 240px;
+            font: 300 .95rem var(--p);
+            background: none;
+            border: 0;
+            border-bottom: 1px solid var(--border);
+            padding: 8px 2px;
+            color: var(--text);
+            outline: 0
+        }
+
+        #count {
+            font-size: .78rem;
+            color: var(--legend)
+        }
+
+
+        .ftoggle:hover,
+        .tools.open .ftoggle {
+            color: var(--accent)
+        }
+
+
+        .tools.open .ftoggle .plus {
+            transform: rotate(135deg)
+        }
+
+
+        #q:focus {
+            border-color: var(--accent)
+        }
+
+        .fpanel {
+            background: var(--bg);
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transition: max-height .6s ease, opacity .4s ease, visibility 0s .6s
+        }
+
+        .tools.open .fpanel {
+            max-height: min(480px, 70vh);
+            overflow: auto;
+            opacity: 1;
+            visibility: visible;
+            transition-delay: 0s
+        }
+
+        .fpanel .container {
+            padding-top: 24px;
+            padding-bottom: 28px
+        }
+
+        .fgroup+.fgroup {
+            margin-top: 24px
+        }
+
+        .fgroup .eyebrow {
+            margin-bottom: 8px
+        }
+
+
+
+        .fgrid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            column-gap: 24px
+        }
+
+        .fgrid.prio {
+            grid-template-columns: repeat(6, 1fr)
+        }
+
+        .chip {
+            display: block;
+            position: relative;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            font: 500 .72rem var(--p);
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: color .3s
+        }
+
+        .chip::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: -1px;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transform: translateX(-50%);
+            transition: width .5s, left .5s
+        }
+
+        .chip:hover,
+        .chip.on {
+            color: var(--accent)
+        }
+
+        .chip:hover::after,
+        .chip.on::after {
+            width: 100%
+        }
+
+        .chip .pr {
+            margin: 0;
+            text-transform: inherit
+        }
+
+        .ai {
+            border-bottom: 1px solid var(--border)
+        }
+
+        .ai:first-child {
+            border-top: 1px solid var(--border)
+        }
+
+        .ah {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 26px 0;
+            cursor: pointer;
+            user-select: none;
+            width: 100%;
+            background: none;
+            border: 0;
+            text-align: left;
+            color: inherit;
+            font: inherit
+        }
+
+        .ah h2,
+        .ah h3 {
+            font-family: var(--s);
+            font-weight: 700;
+            transition: color .3s;
+            flex: 1
+        }
+
+        .ah h2 {
+            font-size: clamp(1.4rem, 3vw, 2.2rem)
+        }
+
+        .ah h3 {
+            font-size: 1.15rem;
+            font-family: var(--p);
+            font-weight: 500
+        }
+
+        .ah:hover h2,
+        .ah:hover h3,
+        .ah:hover .plus {
+            color: var(--accent)
+        }
+
+        .id {
+            font-size: .7rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            min-width: 74px
+        }
+
+        .meta {
+            font-size: .7rem;
+            color: var(--legend);
+            white-space: nowrap
+        }
+
+        .plus {
+            font-size: 2rem;
+            width: 1em;
+            height: 1em;
+            transition: transform .6s, color .3s;
+            flex-shrink: 0
+        }
+
+        .plus svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            stroke-width: 2;
+            display: block
+        }
+
+        .ai.active>.ah .plus {
+            transform: rotate(135deg)
+        }
+
+        .ac {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .6s cubic-bezier(.645, .045, .355, 1)
+        }
+
+        .ai.active>.ac {
+            grid-template-rows: 1fr
+        }
+
+        .ac>div {
+            overflow: hidden;
+            min-height: 0
+        }
+
+        .ah {
+            position: relative
+        }
+
+        .ah::before {
+            content: "";
+            position: absolute;
+            left: -1px;
+            top: 20%;
+            bottom: 20%;
+            width: 3px;
+            background: var(--pc, transparent)
+        }
+
+        [data-p=highest] {
+            --pc: #d9534f
+        }
+
+        [data-p=high] {
+            --pc: #ee8a3b
+        }
+
+        [data-p=medium] {
+            --pc: #e6b422
+        }
+
+        [data-p=low] {
+            --pc: #5aa469
+        }
+
+        [data-p=lowest] {
+            --pc: #4a7fd4
+        }
+
+        .pr {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 12px;
+            text-transform: capitalize
+        }
+
+        .pr::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pc)
+        }
+
+        .sub {
+            border-top: 1px dashed #36363655;
+            padding: 14px 0 14px 24px;
+            background: linear-gradient(var(--pc, transparent), var(--pc, transparent)) no-repeat 0 6px / 3px calc(100% - 12px);
+        }
+
+        .sub>summary .tags {
+            font-size: .57rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--legend);
+            font-weight: 400
+        }
+
+        .sub>summary .sid {
+            font-size: .57rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--accent);
+            font-weight: 400;
+            white-space: nowrap
+        }
+
+        .sub>summary:hover .tags {
+            color: var(--legend)
+        }
+
+        .kick {
+            grid-column: 2;
+            grid-row: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 4px 14px
+        }
+
+        .kick:empty {
+            display: none
+        }
+
+        .stt {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: .95rem;
+            line-height: 1.4
+        }
+
+        .in {
+            padding: 0 0 26px 94px
+        }
+
+        .ai .ai .ah {
+            padding: 18px 0 18px 20px
+        }
+
+
+        .subs {
+            border-bottom: 1px dashed #36363655
+        }
+
+        .in {
+            padding-left: 40px
+        }
+
+        .sec {
+            margin: 0 0 18px;
+            font-size: .84rem;
+            line-height: 1.7;
+            font-weight: 300
+        }
+
+        .sec h4 {
+            font-size: .66rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--legend);
+            margin-bottom: 6px
+        }
+
+        .sec p {
+            margin-bottom: 4px
+        }
+
+        .sec ol,
+        .sec ul {
+            padding-left: 20px
+        }
+
+        .sec li {
+            margin-bottom: 3px
+        }
+
+        .gh {
+            background: rgba(42, 42, 42, .05);
+            border-left: 2px solid var(--accent);
+            padding: 12px 16px;
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: .76rem;
+            line-height: 1.8
+        }
+
+        .gh b {
+            color: var(--accent);
+            font-weight: 600
+        }
+
+        .sub>summary {
+            cursor: pointer;
+            font-size: .88rem;
+            font-weight: 400;
+            list-style: none;
+            display: grid;
+            grid-template-columns: 12px 1fr;
+            column-gap: 10px;
+            row-gap: 4px;
+            align-items: baseline
+        }
+
+        .sub>summary::-webkit-details-marker {
+            display: none
+        }
+
+        .sub>summary::before {
+            content: "+";
+            color: var(--accent);
+            font-weight: 600;
+            grid-column: 1;
+            grid-row: 2
+        }
+
+        .sub[open]>summary::before {
+            content: "–"
+        }
+
+        .sub>summary:hover {
+            color: var(--accent)
+        }
+
+        .sub .body {
+            padding: 14px 0 6px 22px
+        }
+
+        .hide {
+            display: none !important
+        }
+
+        .qa-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 0;
+            font-family: var(--p);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            text-decoration: none;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .qa-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: 6px;
+            left: 50%;
+            background-color: var(--accent);
+            transition: width 0.4s ease, left 0.4s ease;
+            transform: translateX(-50%);
+        }
+
+        .qa-link:hover {
+            color: var(--accent);
+        }
+
+        .qa-link:hover::after {
+            width: 100%;
+        }
+
+        .qa-link-icon {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            transition: transform 0.3s ease;
+        }
+
+        .qa-link:hover .qa-link-icon {
+            transform: translateY(-2px);
+        }
+
+
+        footer {
+            padding: 48px 24px;
+            text-align: center;
+            font-size: .75rem;
+            color: var(--legend)
+        }
+
+        .res .run {
+            margin-bottom: 8px
+        }
+
+        .res .run>p {
+            margin: 0
+        }
+
+        .res .run b {
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            font-size: .72rem
+        }
+
+        .res .rn {
+            margin: 4px 0 0;
+            color: var(--legend);
+            font-weight: 300;
+            font-size: .8rem;
+            line-height: 1.6;
+            max-width: 70ch
+        }
+
+        .res .fix {
+            margin-top: 6px
+        }
+
+        .res .fix a {
+            font-family: ui-monospace, Menlo, monospace;
+            font-size: .78rem;
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px solid var(--accent)
+        }
+
+        .res .fix a:hover {
+            color: var(--accent)
+        }
+
+        @media (max-width: 700px) {
+            .tbar {
+                flex-wrap: wrap;
+                gap: 10px 16px;
+                padding: 14px 0
+            }
+
+            .ftoggle {
+                font-size: .85rem;
+                white-space: nowrap
+            }
+
+            .fsum {
+                flex: 1 1 0;
+                min-width: 0
+            }
+
+            #q {
+                order: 3;
+                flex: 1 1 100%;
+                width: 100%;
+                min-width: 0
+            }
+
+            #count {
+                order: 4;
+                flex: 1 1 100%
+            }
+
+            #count:empty {
+                display: none
+            }
+
+            .fgrid {
+                grid-template-columns: repeat(4, 1fr);
+                column-gap: 12px
+            }
+
+            .chip {
+                overflow-wrap: anywhere
+            }
+
+            .sub {
+                padding-left: 16px
+            }
+
+            .in {
+                padding-left: 12px
+            }
+
+            .id {
+                min-width: 0
+            }
+
+            .meta {
+                display: none
+            }
+
+            .flow>div {
+                border-right: 0;
+                border-bottom: 1px solid var(--border)
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .fgrid,
+            .fgrid.prio {
+                grid-template-columns: repeat(3, 1fr)
+            }
+
+            .chip {
+                font-size: .66rem;
+                letter-spacing: .4px
+            }
+        }
+
+        @media(prefers-reduced-motion:reduce) {
+            * {
+                transition: none !important;
+                animation-duration: .01s !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="hero">
+        <h1 class="hero-text"><span class="light-text" data-w="Arcana Futura"></span><span class="bold-text"
+                data-w="Test Backlog"></span></h1>
+        <p>Manual test design for a Flask + Redis + WebSocket tarot app, organised the way an Agile/Scrum team would:
+            Epics, User Stories with Gherkin acceptance criteria, and executable test subtasks. Rebuilt from my original
+            Jira board.</p><span class="pill">QA · Manual Testing · Agile / Scrum</span>
+    </header>
+
+    <section class="blk">
+        <div class="container">
+            <div class="eyebrow">How the backlog is organised</div>
+            <h2 class="t">Epic → Story → Subtask</h2>
+            <p class="lead">The original Jira board was removed by Jira, so this page rebuilds it from the spreadsheet I
+                kept. Every item below is the original test documentation, unedited.</p>
+            <p class="lead" style="margin-top:12px;font-size:.8rem">
+                Sprint "QA Round 1 – Full Suite" · 19 Mar – 30 Apr 2026 · all stories and subtasks closed as Done<br>
+                <span id="fixstat"></span>
+            </p>
+            <a href="arcanafutura-test-plan.html" target="_blank" rel="noopener noreferrer" class="qa-link">
+                <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,11V13H8V11H16M16,15V17H8V15H16Z" />
+                </svg>
+                <span>For an overview, you can access the spreadsheet here</span>
+            </a>
+            <div class="flow">
+                <div><small>LEVEL 1</small><strong><span id="n-epics"></span> Epics</strong>
+                    <p>A business capability or risk area, with the "why" and the key test scenarios that justify it.
+                    </p>
+                </div>
+                <div><small>LEVEL 2</small><strong><span id="n-stories"></span> User stories</strong>
+                    <p>Written from the user's view, with technical context and Given/When/Then acceptance criteria.</p>
+                </div>
+                <div><small>LEVEL 3</small><strong><span id="n-subs"></span> Subtasks</strong>
+                    <p>One executable test case: pre-conditions, test data, steps and expected result.</p>
+                </div>
+            </div>
+
+            <div class="eyebrow" style="margin-top:44px">Test cases per category · up to 3 labels per test</div>
+            <div class="bar" style="margin-top:0" id="bar"></div>
+            <div class="legend" id="legend"></div>
+            <div class="eyebrow" style="margin-top:44px">Priority of test cases</div>
+            <div class="bar" style="margin-top:0" id="pbar"></div>
+            <div class="legend" id="plegend"></div>
+            <p class="lead" style="margin-top:20px;font-size:.8rem">The coloured bar next to each story and subtask
+                marks the priority I assigned on the Jira board.<br>All tests have an assigned priority.</p>
+
+        </div>
+    </section>
+
+    <section class="tools">
+        <div class="container">
+            <div class="tbar">
+                <button class="ftoggle" id="ftoggle" aria-expanded="false" aria-controls="fpanel">
+                    Select Tests by Filters
+                    <span class="plus"><svg viewBox="0 0 24 24">
+                            <line x1="12" y1="3" x2="12" y2="21" />
+                            <line x1="3" y1="12" x2="21" y2="12" />
+                        </svg></span>
+                </button>
+                <span class="fsum" id="fsum">All tests selected</span>
+                <input id="q" type="search" placeholder="Search tests…" aria-label="Search tests">
+                <div id="count"></div>
+            </div>
+        </div>
+        <div class="fpanel" id="fpanel">
+            <div class="container">
+                <div class="fgroup">
+                    <div class="eyebrow">Filter by category</div>
+                    <div class="fgrid">
+                        <span class="chip on" data-t="">All</span><span id="chips" style="display:contents"></span>
+                    </div>
+                </div>
+                <div class="fgroup">
+                    <div class="eyebrow">Filter by priority</div>
+                    <div class="fgrid prio">
+                        <span class="chip on" data-pp="">All</span><span id="pchips" style="display:contents"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <main class="container" style="padding-top:48px;padding-bottom:48px" id="root"></main>
+    <footer>Arcana Futura · QA test documentation · Migrated from Jira (original board deleted)</footer>
+    <script src="backlog-data.js"></script>
+    <script src="backlog-results.js"></script>
+    <script>
+
+        const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        const TAGS = {
+            'Positive': [0, '#2e8b57'], 'Negative': [0, '#c0392b'], 'Boundary value analysis': [0, '#d68910'],
+            'State transition': [0, '#8e6bbf'], 'Concurrency': [0, '#b9770e'], 'Recovery': [0, '#16a085'],
+            'Security': [0, '#6c3fb5'], 'Accessibility': [0, '#2874a6'], 'Performance': [0, '#cb4335'],
+            'Compatibility': [0, '#117a65'], 'GUI': [0, '#7f8c8d'], 'API': [0, '#1f618d'],
+            'Integration': [0, '#af601a'], 'Regression': [0, '#884ea0'], 'Smoke': [0, '#a04000'], 'Gray box': [0, '#4d5656']
+        };
+
+        const SEC = /^(Summary|Description|Pre-?conditions?|Test Data|Steps|Expected Result|Technical Context|Acceptance Criteria[^:]*|Why|Key Test Scenarios|Documentation Requirement)\s*:\s*(.*)$/i;
+        function parse(raw) {
+            const L = raw.replace(/\r/g, '').split('\n'); const title = L.shift().trim(); const secs = []; let cur = null;
+            for (const l of L) { const m = l.trim().match(SEC); if (m) { cur = { h: m[1], l: m[2] ? [m[2]] : [] }; secs.push(cur) } else if (l.trim()) { if (!cur) { cur = { h: '', l: [] }; secs.push(cur) } cur.l.push(l.trim()) } }
+            return { title, secs }
+        }
+        function secHTML(s) {
+            let b; const h = s.h;
+            if (/^Acceptance/i.test(h)) b = '<div class="gh">' + s.l.map(x => esc(x).replace(/^(Given|When|Then|And|But)\b/, '<b>$1</b>')).join('<br>') + '</div>';
+            else if (/^Steps$/i.test(h)) b = '<ol>' + s.l.map(x => '<li>' + esc(x.replace(/^\d+[.)]\s*/, '')) + '</li>').join('') + '</ol>';
+            else if (/Expected|Key Test|Test Data/i.test(h) && s.l.length > 1) b = '<ul>' + s.l.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+            else b = s.l.map(x => '<p>' + esc(x) + '</p>').join('');
+            return '<div class="sec">' + (h ? '<h4>' + esc(h) + '</h4>' : '') + b + '</div>'
+        }
+        const PLUS = '<span class="plus"><svg viewBox="0 0 24 24"><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg></span>';
+        const PL = p => p ? `<span class="pr" data-p="${p}">${p}</span>` : '';
+        const acc = (id, title, meta, inner, lvl, p) => `<div class="ai"${p ? ` data-p="${p}"` : ''}><button class="ah" aria-expanded="false"><span class="id">${id}</span><${lvl}>${esc(title)}</${lvl}><span class="meta"><span class="mc">${meta}</span>${PL(p)}</span>${PLUS}</button><div class="ac"><div><div class="in">${inner}</div></div></div></div>`;
+        let st = { subs: 0, stories: 0, tags: {}, pri: {} };
+        const RES = typeof RESULTS !== 'undefined' ? RESULTS : {};
+        const COMMIT_URL = 'https://github.com/akaselvas/cs50_arcanafutura/commit/';
+        const fmtDate = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const rk = (ei, si, ti) => `E${String(ei + 1).padStart(2, '0')}-S${String(si + 1).padStart(2, '0')}-T${String(ti + 1).padStart(2, '0')}`;
+
+        function resultHTML(k) {
+            const r = RES[k]; if (!r) return '';
+            const runs = (r.runs || []).map(x => `<div class="run"><p><b>${x.s === 'NOTE' ? 'Note' : x.s}</b>${x.q ? ' · ' + esc(x.q) : ''}${x.e ? ' · ' + esc(x.e) : ''} · ${fmtDate(x.d)}</p>${x.n ? `<div class="rn">${esc(x.n).replace(/\n/g, '<br>')}</div>` : ''}</div>`).join('');
+            const fix = (r.fix || []).length ? `<p class="fix">Fix: ${r.fix.map(h => `<a href="${COMMIT_URL}${h}" target="_blank" rel="noopener noreferrer">${h}</a>`).join(' · ')}</p>` : '';
+            return `<div class="sec res"><h4>Execution result</h4>${runs}${fix}</div>`;
+        }
+        const html = DATA.map((e, ei) => {
+            const ep = parse(e.text);
+            const stories = e.stories.map((s, si) => {
+                const sp = parse(s.text); st.stories++; if (/Acceptance Criteria/i.test(s.text)) st.gh++;
+                const subs = s.subs.map((o, ti) => {
+                    const t = o.t, p = parse(t); if (o.p) st.pri[o.p] = (st.pri[o.p] || 0) + 1; st.subs++; const tg = o.tags || []; tg.forEach(k => st.tags[k] = (st.tags[k] || 0) + 1);
+                    const num = (p.title.match(/^Subtask\s*(\d+)/i) || [])[1] || '';
+                    const RK = rk(ei, si, ti);
+                    return `<details class="sub"${o.p ? ` data-p="${o.p}"` : ''} data-tags="${tg.join('|')}" data-s="${esc((p.title + ' ' + t).toLowerCase())}"><summary><span class="kick">${num ? `<span class="sid">Subtask ${num}</span>` : ''}${tg.length ? `<span class="tags">${tg.join(' · ')}</span>` : ''}</span><span class="stt">${esc(p.title.replace(/^Subtask\s*\d+:\s*/i, ''))}</span></summary><div class="body">${p.secs.map(secHTML).join('')}${resultHTML(RK)}</div></details>`
+                }).join('');
+                return acc(s.id, sp.title, s.subs.length + ' subtasks', sp.secs.map(secHTML).join('') + '<div class="sec"><h4>Subtasks · test cases</h4></div><div class="subs">' + subs + '</div>', 'h3', s.p)
+            }).join('');
+            return acc(e.id, ep.title, e.stories.length + ' stories', ep.secs.map(secHTML).join('') + '<div class="stories">' + stories + '</div>', 'h2', e.p)
+        }).join('');
+        root.innerHTML = html;
+        // Accordion — same open/close behaviour as accordion.js (.active class on .ai)
+        root.addEventListener('click', ev => { const h = ev.target.closest('.ah'); if (!h) return; const it = h.parentElement; const on = it.classList.toggle('active'); h.setAttribute('aria-expanded', on) });
+        document.getElementById('n-epics').textContent = DATA.length;
+        document.getElementById('n-stories').textContent = st.stories;
+        document.getElementById('n-subs').textContent = st.subs;
+        const nFix = Object.values(RES).filter(v => (v.fix || []).length).length;
+        const nCom = Object.values(RES).reduce((a, v) => a + (v.fix || []).length, 0);
+        document.getElementById('fixstat').textContent = `${nFix} of ${st.subs} test cases led to a code fix (${nCom} commits).`;
+        const PO = ['highest', 'high', 'medium', 'low', 'lowest'], PC = { highest: '#d9534f', high: '#ee8a3b', medium: '#e6b422', low: '#5aa469', lowest: '#4a7fd4' };
+        const ptot = PO.reduce((a, k) => a + (st.pri[k] || 0), 0);
+        const tot = Object.values(st.tags).reduce((a, b) => a + b, 0);
+        const TAGKEYS = Object.keys(TAGS).sort((a, b) => (st.tags[b] || 0) - (st.tags[a] || 0));
+        const TAGCOL = {};
+        const WARM = [18, 52], COOL = [180, 330];             // trechos usados do círculo cromático
+        const WSPAN = WARM[1] - WARM[0], SPAN = WSPAN + (COOL[1] - COOL[0]);
+        TAGKEYS.forEach((k, i) => {
+            const d = i / (TAGKEYS.length - 1) * SPAN;            // posição ao longo dos dois trechos
+            const hue = d <= WSPAN ? WARM[0] + d : COOL[0] + (d - WSPAN);
+            TAGCOL[k] = `hsl(${hue} 52% ${i % 2 ? 44 : 60}%)`;
+        });
+        bar.innerHTML = TAGKEYS.map(k => `<i style="width:${(st.tags[k] || 0) / tot * 100}%;background:${TAGCOL[k]}"></i>`).join('');
+        pbar.innerHTML = PO.map(k => `<i style="width:${(st.pri[k] || 0) / ptot * 100}%;background:${PC[k]}"></i>`).join('');
+        plegend.innerHTML = PO.map(k => `<span><i style="background:${PC[k]}"></i>${k[0].toUpperCase() + k.slice(1)} · ${st.pri[k] || 0}</span>`).join('');
+        legend.innerHTML = TAGKEYS.map(k => `<span><i style="background:${TAGCOL[k]}"></i>${k} · ${st.tags[k] || 0}</span>`).join('');
+        const SHORT = { 'Boundary value analysis': 'BVA' };
+        chips.innerHTML = TAGKEYS.map(k => `<span class="chip" data-t="${k}" title="${k}">${SHORT[k] || k}</span>`).join(' ');
+        pchips.innerHTML = PO.map(k => `<span class="chip" data-pp="${k}"><span class="pr" data-p="${k}" style="margin:0">${k}</span></span>`).join(' ');
+        let tag = '', pp = ''; const $$ = s => [...document.querySelectorAll(s)];
+        function filter() {
+            const q = document.getElementById('q').value.trim().toLowerCase(); const on = !!(tag || pp || q); let n = 0;
+            $$('.ai').forEach(a => a.classList.remove('active'));
+            $$('.sub').forEach(d => { const ok = (!tag || d.dataset.tags.split('|').includes(tag)) && (!pp || d.dataset.p === pp) && (!q || d.dataset.s.includes(q)); d.classList.toggle('hide', !ok); if (ok) n++ });
+            $$('.stories>.ai').forEach(s => {
+                const v = s.querySelectorAll('.sub:not(.hide)').length, t = s.querySelectorAll('.sub').length;
+                s.classList.toggle('hide', !v);
+                s.querySelector(':scope>.ah .mc').textContent = on ? v + ' of ' + t + ' subtasks' : t + ' subtasks';
+            });
+            $$('#root>.ai').forEach(e => {
+                const v = e.querySelectorAll('.sub:not(.hide)').length; e.classList.toggle('hide', !v); if (on && v) e.classList.add('active'); const vs = e.querySelectorAll('.stories>.ai:not(.hide)').length, ts = e.querySelectorAll('.stories>.ai').length;
+                e.querySelector(':scope>.ah .mc').textContent = on ? vs + ' of ' + ts + ' stories' : ts + ' stories';
+            });
+            count.textContent = on ? n + ' of ' + st.subs + ' test cases match' : ''
+            fsum.textContent = [tag, pp && pp[0].toUpperCase() + pp.slice(1)].filter(Boolean).join(' · ') || 'All tests selected';
+        }
+        document.querySelector('.tools').addEventListener('click', e => {
+            const c = e.target.closest('.chip'); if (!c) return; if (c.dataset.pp !== undefined) { pp = pp === c.dataset.pp ? '' : c.dataset.pp } else { tag = c.dataset.t }
+            $$('.chip').forEach(x => x.classList.toggle('on', x.dataset.pp !== undefined ? x.dataset.pp === pp : (x.dataset.t === tag))); filter()
+        });
+        q.addEventListener('input', filter);
+        const tools = document.querySelector('.tools'), ft = document.getElementById('ftoggle');
+        const setOpen = o => { tools.classList.toggle('open', o); ft.setAttribute('aria-expanded', o) };
+        ft.addEventListener('click', () => setOpen(!tools.classList.contains('open')));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') setOpen(false) });
+        document.addEventListener('click', e => { if (!tools.contains(e.target)) setOpen(false) });
+        // Hero split-text reveal
+        $$('[data-w]').forEach((el, i) => { el.setAttribute('aria-label', el.dataset.w); el.innerHTML = el.dataset.w.split(' ').map((w, j) => `<span aria-hidden="true" style="animation-delay:${(i * 2 + j) * .12}s">${w}&nbsp;</span>`).join('') });
+    </script>
+</body>
+
+</html>

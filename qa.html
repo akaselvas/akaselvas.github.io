@@ -1420,7 +1420,7 @@
                     <div class="qa-tldr">
                         <p class="qa-tldr-label" data-i18n="qa.arcana.tldr.label">TL;DR</p>
                         <ul class="qa-tldr-list">
-                            <li data-i18n-html="qa.arcana.tldr.li1">340 manual test cases, covering session handling,
+                            <li data-i18n-html="qa.arcana.tldr.li1">301 manual test cases, covering session handling,
                                 WebSockets, input sanitization and API-quota limits — run before any automated coverage
                                 existed.</li>
                             <li data-i18n-html="qa.arcana.tldr.li2">5 critical findings written up in depth: a global
@@ -1456,13 +1456,13 @@
                         </a>
 
                         <!-- Spreadsheet -->
-                        <a href="https://docs.google.com/spreadsheets/d/1o8hVff3aoBEdNZ48j4oaW1-oXteNvpU7OzxkRuL8xvc/edit?usp=sharing"
+                        <a href="arcanafutura-test-plan.html"
                             target="_blank" rel="noopener noreferrer" class="qa-link">
                             <svg class="qa-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path
                                     d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M16,11V13H8V11H16M16,15V17H8V15H16Z" />
                             </svg>
-                            <span data-i18n="qa.arcana.links.matrix">Full 340-Point Test Matrix</span>
+                            <span data-i18n="qa.arcana.links.matrix">Full 301-Point Test Matrix</span>
                         </a>
                     </div>
 
@@ -1525,7 +1525,7 @@
 
                     <p class="qa-strategy-body" data-i18n-html="qa.arcana.sections.threatMapIntro">
                         <strong>Architectural Threat Map:</strong> Out of nearly 40 defects identified during the
-                        340-point QA audit,
+                        301-point QA audit,
                         these five represent the most critical and structurally diverse vulnerabilities. They span
                         across
                         five distinct architectural layers: two inside Flask's runtime (memory mutation, template
@@ -1841,7 +1841,7 @@
                     <p class="qa-strategy-body" data-i18n-html="qa.arcana.sections.strategyP1">
                         I structured the QA process using a professional Scrum hierarchy: <strong>9 Epics</strong>
                         and <strong>54 User Stories</strong>, decomposed into a rigorous matrix of
-                        <strong>over 340 executable subtasks</strong> tracked in Jira. I deliberately prioritized
+                        <strong>301 executable subtasks</strong> tracked in Jira. I deliberately prioritized
                         manual testing for this phase because automation only verifies what it is scripted to check.
                         Manual exploratory testing brings the intuition and flexibility needed to uncover hidden bugs,
                         unpredictable edge cases, and usability issues that fall outside of rigid automated paths.
@@ -1857,7 +1857,7 @@
                     </p>
 
                     <p class="qa-strategy-result" data-i18n-html="qa.arcana.sections.strategyResult">
-                        <strong>Result:</strong> A test plan of 340 subtasks in Jira, backed by over 100 automated tests
+                        <strong>Result:</strong> A test plan of 301 subtasks in Jira, backed by over 100 automated tests
                         integrated into GitHub Actions for continuous CI/CD validation.
                     </p>
 
@@ -1909,7 +1909,7 @@
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.ref">Ref</span>
-                                        <span class="bug-meta-value">AF-62</span>
+                                        <span class="bug-meta-value">E02·S01·T06</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.method">Method</span>
@@ -1983,7 +1983,7 @@
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.ref">Ref</span>
-                                        <span class="bug-meta-value">AF-185</span>
+                                        <span class="bug-meta-value">E05·S01·T04</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.method">Method</span>
@@ -1993,25 +1993,31 @@
                                 </div>
                                 <div class="bug-body">
                                     <p data-i18n-html="qa.arcana.bugs.b2.whatBroke">
-                                        <strong>What broke:</strong> Two separate failure modes existed depending on
-                                        the <code>ProxyFix</code> configuration. Without it, Flask-Limiter received
-                                        the load balancer IP for every user. With <code>x_for</code> set too high,
-                                        an attacker could prepend a fake IP to <code>X-Forwarded-For</code> and
-                                        bypass the rate limiter entirely.
+                                        <strong>What broke:</strong> Two separate failure modes appeared while tuning
+                                        <code>ProxyFix</code> behind Render's load balancers. With <code>x_for=1</code>
+                                        (the original setting), Flask-Limiter read Render's internal proxy IP — a
+                                        10.x.x.x address that changed on almost every request — instead of the user's
+                                        IP, so the per-IP limit never triggered. Raising it to <code>x_for=2</code>
+                                        extracted the real client IP, but trusted a hop the client can influence: an
+                                        attacker could prepend a fake IP to <code>X-Forwarded-For</code> and bypass the
+                                        limiter entirely.
                                     </p>
                                     <p data-i18n-html="qa.arcana.bugs.b2.impact">
-                                        <strong>Real-world impact:</strong> In the misconfigured state, all 400+ daily
-                                        users shared a single rate counter keyed to Render's load balancer IP. Any
-                                        one user exhausting the daily limit would trigger a 429 that blocked every
-                                        other user simultaneously. In the over-trusted state, a single attacker
-                                        header (<code>X-Forwarded-For: 127.0.0.1</code>) made the rate limiter read
-                                        localhost as the client — giving unlimited free AI readings and draining
-                                        Gemini API quota.
+                                        <strong>Real-world impact:</strong> In the first state the rate limit was
+                                        effectively useless (a 105-request loop was never blocked until the fix). In
+                                        the over-trusted state, a single forged header
+                                        (<code>X-Forwarded-For: 1.2.3.4</code>) let 10 rapid requests through with no
+                                        429, giving unlimited free AI readings and draining Gemini API quota.
                                     </p>
                                     <p data-i18n-html="qa.arcana.bugs.b2.fix">
                                         <strong>The fix:</strong> <code>ProxyFix(app.wsgi_app, x_for=1, x_proto=1,
-                                    x_host=1, x_prefix=1)</code> — <code>x_for=1</code> exactly matches Render's
-                                        single-hop architecture and closes both failure modes.
+                                        x_host=1, x_prefix=1)</code>. <code>x_for=1</code> trusts only the last hop,
+                                        which closes the spoofing bypass (verified: the 8th request with a forged
+                                        header returns 429). <strong>Known limitation, documented and accepted:</strong>
+                                        behind Render's load balancers the limiter keys on the proxy's internal IP
+                                        rather than the user's public IP, so limits are effectively shared. For a
+                                        high-traffic deployment the recommendation is a proxy trust list or the
+                                        <code>CF-Connecting-IP</code> header.
                                     </p>
                                     <span class="bug-label" data-i18n="qa.arcana.bugs.b2.label">Regression test — two
                                         failure modes, two functions</span>
@@ -2066,7 +2072,7 @@
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.ref">Ref</span>
-                                        <span class="bug-meta-value">AF-307 · AF-308 · AF-310</span>
+                                        <span class="bug-meta-value">E08·S04·T01 · E08·S04·T03</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.method">Method</span>
@@ -2089,9 +2095,10 @@
                                         completed without a single rejection.
                                     </p>
                                     <p data-i18n-html="qa.arcana.bugs.b3.fix">
-                                        <strong>The fix:</strong> <code>validate_csrf()</code> added to the handler
-                                        plus a custom Redis-backed sliding window limiter — 10 messages per 60 seconds
-                                        per session — because Flask-Limiter cannot be applied to socket events.
+                                        <strong>The fix:</strong> <code>validate_csrf()</code> added to the handler,
+                                        plus a custom in-memory sliding-window limiter (<code>is_rate_limited()</code>,
+                                        backed by a <code>defaultdict</code>) allowing 10 messages per 60 seconds per
+                                        session, because Flask-Limiter cannot be applied to socket events.
                                     </p>
                                     <span class="bug-label" data-i18n="qa.arcana.bugs.b3.label">Regression test — verify
                                         socket event authentication</span>
@@ -2138,7 +2145,7 @@
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.ref">Ref</span>
-                                        <span class="bug-meta-value">AF-29</span>
+                                        <span class="bug-meta-value">E01·S03·T05</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.method">Method</span>
@@ -2220,7 +2227,7 @@
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.ref">Ref</span>
-                                        <span class="bug-meta-value">AF-116</span>
+                                        <span class="bug-meta-value">E03·S03·T02</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.method">Method</span>
@@ -2296,7 +2303,7 @@
                     </div>
 
                     <p class="qa-strategy-body" data-i18n-html="qa.arcana.sections.scopeIntro">
-                        The 340+ manual test cases were organized into 9 Epics and 54 User Stories,
+                        The 301 manual test cases were organized into 9 Epics and 54 User Stories,
                         mapped directly to the application's architecture. Each Epic targeted a distinct
                         layer of the stack — from HTTP form handling to Redis session storage, WebSocket
                         events, AI prompt integrity, and browser accessibility. A consistent triage filter
@@ -2525,13 +2532,7 @@
                                             handler via mocked API failures to verify a <code>receive_message</code>
                                             event is emitted on failure. If the except block silently fails, the
                                             client's loading indicator spins indefinitely with no recovery path.</li>
-                                        <li data-i18n-html="qa.arcana.epics.e4.li5"><strong>Chat Rate Limiting:</strong>
-                                            Verifying the in-memory sliding-window rate limiter
-                                            (<code>is_rate_limited()</code>) exists and is called from
-                                            <code>handle_message</code> — since Flask-Limiter's
-                                            <code>@limiter.limit</code> decorator applies only to HTTP routes and cannot
-                                            protect Socket.IO event handlers.
-                                        </li>
+                                    
                                     </ul>
                                 </div>
                             </div>
@@ -2591,6 +2592,15 @@
                                             cookie with no <code>Expires</code> or <code>Max-Age</code> attribute —
                                             making it a true browser-session cookie that disappears on close, critical
                                             for shared-device privacy.</li>
+                                        <li data-i18n-html="qa.arcana.epics.e5.li6"><strong>Tab Privacy Guard:</strong>
+                                            The <code>/clear_session</code> route, introduced to support the
+                                            <code>sessionStorage</code>-based tab detection in <code>cartas.html</code>
+                                            and <code>results.html</code>, was specifically security-audited: verifying
+                                            it is <code>@csrf.exempt</code> (required because the JS fires before any
+                                            token is available), accepts only <code>POST</code>, fully clears all
+                                            session keys, and returns JSON — each a distinct crash or data-breach vector
+                                            if broken.
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -2611,9 +2621,8 @@
                             </div>
                             <div class="accordion-content">
                                 <div class="bug-body">
-                                    <p data-i18n="qa.arcana.epics.e6.focus"><strong>Focus:</strong> Mobile-specific
-                                        rendering behavior, touch event semantics, and the tab-privacy mechanism
-                                        introduced to handle shared-device use cases.</p>
+                                    <p data-i18n="qa.arcana.epics.e6.focus"><strong>Focus:</strong> Mobile-specific rendering behavior, 
+                                        touch event semantics and responsive layout across viewport sizes.</p>
                                     <ul>
                                         <li data-i18n-html="qa.arcana.epics.e6.li1"><strong>Orientation Lock:</strong>
                                             Testing the <code>#rotate-message</code> overlay controlled by a CSS
@@ -2634,16 +2643,13 @@
                                             listeners fire immediately on mobile tap without legacy 300ms delay
                                             (suppressed by the <code>width=device-width</code> viewport meta tag), and
                                             that CSS <code>:hover</code> states don't persist after tap-and-release
-                                            ("sticky hover").</li>
-                                        <li data-i18n-html="qa.arcana.epics.e6.li4"><strong>Tab Privacy Guard:</strong>
-                                            The <code>/clear_session</code> route, introduced to support the
-                                            <code>sessionStorage</code>-based tab detection in <code>cartas.html</code>
-                                            and <code>results.html</code>, was specifically security-audited: verifying
-                                            it is <code>@csrf.exempt</code> (required because the JS fires before any
-                                            token is available), accepts only <code>POST</code>, fully clears all
-                                            session keys, and returns JSON — each a distinct crash or data-breach vector
-                                            if broken.
+                                            ("sticky hover").
                                         </li>
+                                        <li data-i18n-html="qa.arcana.epics.e6.li4"><strong>Card Grid Responsiveness:</strong> 
+                                            Verifying flexbox wrapping of the 22-card grid at 320px, no horizontal overflow, tap targets above 44×44px, and
+                                            the stage-3/stage-5 layouts on narrow viewports.
+                                        </li>
+                                        
                                     </ul>
                                 </div>
                             </div>
@@ -2763,6 +2769,12 @@
                                             <code>http://localhost:3000</code> in the production CSP, creating a
                                             potential SSRF-based CSP bypass surface.
                                         </li>
+                                        <li data-i18n-html="qa.arcana.epics.e8.li6"><strong>Rate Limiting on WebSocket Events (Confirmed Vulnerability):</strong>
+                                            A stress test of 200 <code>send_message</code> events produced no 429, because
+                                            Flask-Limiter only covers HTTP routes. Fixed with a custom in-memory
+                                            sliding-window limiter (<code>is_rate_limited()</code>, 10 messages per 60s per
+                                            session), verified by sending 12 messages and receiving exactly 10 responses.
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -2825,13 +2837,14 @@
                                             UI component standard.
                                         </li>
                                         <li data-i18n-html="qa.arcana.epics.e9.li5"><strong>Performance
-                                                Benchmarks:</strong> Established production SLA baselines: TTFB for
-                                            <code>/</code> at 968ms (within 1000ms target), TTI for <code>/cartas</code>
-                                            improved after a 46% asset size reduction (262KB PNG → 140KB WebP). AI
-                                            reading generation averaged 5–9 seconds across 10 runs; chat responses
-                                            averaged 3–5 seconds. Stress test with 5 concurrent users showed 63% average
-                                            latency increase vs. baseline — documented as an acceptable degradation for
-                                            the current single-instance deployment.
+                                                Benchmarks:</strong> Established production SLA baselines: TTFB for <code>/</code> at 968ms (within
+                                                the 1000ms target). A 46% asset reduction (262KB PNG → 140KB WebP) brought
+                                                <code>/cartas</code> to a TTI of 4.1s on a Lighthouse mobile audit — above the
+                                                3s target, accepted as the production baseline. AI reading generation averaged
+                                                6.78s (P95 8.10s) across 10 runs; chat responses averaged 4.45s (P95 6.88s).
+                                                A stress test with 5 concurrent users showed an ~8.4% latency increase
+                                                (7.35s vs 6.78s), within the 10–20% graceful-degradation target, with no
+                                                errors or Redis connection exhaustion.
                                         </li>
                                     </ul>
                                 </div>
@@ -2848,7 +2861,7 @@
                 <div class="container">
                     <div class="qa-section-head">
                         <div class="filter-options">
-                            <span class="filter-btn active" data-i18n="qa.tabs.arcanaAutomation">05 — Automation</span>
+                            <span class="filter-btn active" data-i18n="qa.tabs.arcanaAutomation">06 — Automation</span>
                         </div>
                     </div>
 
@@ -2919,7 +2932,7 @@
 
                     <p class="qa-strategy-body" data-i18n-html="qa.brasil2040.intro1">
                         <strong>Brasil 2040</strong> is a purpose-built RAG application — not a chatbot wrapper. The AI
-                        assistant answers exclusively from Brazilian government climate research: 12 PDFs I extracted,
+                        assistant answers exclusively from Brazilian government climate research: 42 PDFs I extracted,
                         chunked, and embedded myself using <strong>multilingual-e5-large</strong> on a Kaggle GPU
                         notebook. Every response must trace back to vectors stored in my own Supabase pgvector database,
                         retrieved by a FastAPI backend I wrote. Gemini handles generation, but the documents are the
@@ -2976,15 +2989,17 @@
                         <span class="qa-tech-tag">multilingual-e5-large (1GB)</span>
                         <span class="qa-tech-tag">Supabase pgvector</span>
                         <span class="qa-tech-tag">HuggingFace Spaces</span>
+                        <span class="qa-tech-tag">Corpus audit (802 junk chunks removed)</span>
                     </div>
 
                     <div class="qa-tech-stack">
                         <span class="qa-tech-label" data-i18n="qa.brasil2040.tech.evalStack">Eval Stack:</span>
                         <span class="qa-tech-tag">Pytest</span>
                         <span class="qa-tech-tag">LLM-as-Judge (Gemini)</span>
-                        <span class="qa-tech-tag">30-Question Golden Set</span>
+                        <span class="qa-tech-tag">29-Question Golden Set</span>
                         <span class="qa-tech-tag">GitHub Actions CI/CD</span>
                         <span class="qa-tech-tag">ScoutQA AI Agent</span>
+                        <span class="qa-tech-tag">Tests the production /chat</span>
                     </div>
 
                     <div class="qa-tech-stack">
@@ -3002,11 +3017,11 @@
                             <a href="https://github.com/akaselvas/brasil2040/actions/workflows/evals.yml"
                                 target="_blank" rel="noopener noreferrer">
                                 <img src="https://github.com/akaselvas/brasil2040/actions/workflows/evals.yml/badge.svg?branch=main"
-                                    alt="Python CI Pipeline Status">
+                                    alt="AI Evals workflow status">
                             </a>
 
                         </div>
-                        <span class="qa-ci-label" data-i18n="qa.brasil2040.ciLabel">All 4 eval jobs green on GitHub
+                        <span class="qa-ci-label" data-i18n="qa.brasil2040.ciLabel">All 5 eval jobs green on GitHub
                             Actions</span>
                     </div>
 
@@ -3027,7 +3042,7 @@
 
                     <p class="qa-strategy-body" data-i18n-html="qa.brasil2040.sections.systemIntro">
                         <strong>What makes this different from a chatbot test:</strong> The knowledge base was built
-                        from scratch. Numbers like "16,7×" and "99%" have to survive PDF extraction, chunking,
+                        from scratch. Numbers like "16,7×" and "167%" have to survive PDF extraction, chunking,
                         embedding, vector retrieval, and LLM generation before reaching the user. A failure at any layer
                         produces a confident wrong answer — with HTTP 200.
                     </p>
@@ -3135,7 +3150,7 @@
                             <text class="d-section" x="65" y="78" data-i18n-attr="x:qa.brasil2040.diagram1.sourceTextX"
                                 data-i18n="qa.brasil2040.diagram1.source">Source</text>
                             <text class="d-title" x="65" y="96" data-i18n-attr="x:qa.brasil2040.diagram1.sourceTextX"
-                                data-i18n="qa.brasil2040.diagram1.pdfs">12 PDFs</text>
+                                data-i18n="qa.brasil2040.diagram1.pdfs">42 PDFs</text>
                             <text class="d-sub" x="65" y="112" data-i18n-attr="x:qa.brasil2040.diagram1.sourceTextX"
                                 data-i18n="qa.brasil2040.diagram1.pdfsSub">Brazilian gov. research</text>
 
@@ -3213,7 +3228,7 @@
                                 data-i18n="qa.brasil2040.diagram1.fastapiSub1">query: embed question</text>
                             <text class="d-sub" x="220" y="266"
                                 data-i18n-attr="x:qa.brasil2040.diagram1.fastapiTextX|y:qa.brasil2040.diagram1.fastapiSub2Y"
-                                data-i18n="qa.brasil2040.diagram1.fastapiSub2">cosine search top_k=5</text>
+                                data-i18n="qa.brasil2040.diagram1.fastapiSub2">cosine search top_k=10</text>
                             <text class="d-sub" x="220" y="280"
                                 data-i18n-attr="x:qa.brasil2040.diagram1.fastapiTextX|y:qa.brasil2040.diagram1.fastapiSub3Y"
                                 data-i18n="qa.brasil2040.diagram1.fastapiSub3">stream via Gemini</text>
@@ -3354,8 +3369,10 @@
                             <p class="qa-col-body" data-i18n-html="qa.brasil2040.sections.problem1Body">PyMuPDF's
                                 standard <code>get_text("text")</code> misses numbers that live inside table cells. I
                                 added explicit <code>find_tables()</code> extraction per page, appending table content
-                                as structured text before chunking. Without this, the deficit probability figures (99%,
-                                74%) never entered the vector store at all.</p>
+                                as structured text before chunking. Without this, numbers that live only in tables never
+                                entered the vector store. A limit remains: numbers that exist only inside figures
+                                (images) are still invisible to the pipeline. An audit of the evals found one such case,
+                                the 74%–99% deficit risk for the SE/CO subsystem.</p>
                         </div>
                         <div>
                             <p class="qa-col-head" data-i18n="qa.brasil2040.sections.problem2Head">Problem 2 — Regex
@@ -3363,7 +3380,7 @@
                             <p class="qa-col-body" data-i18n-html="qa.brasil2040.sections.problem2Body">A standard
                                 <code>\b\w{1,2}\b</code> cleaning pattern — common in preprocessing tutorials —
                                 destroyed Brazilian decimal notation. <code>"16,7"</code> became <code>"16,"</code> and
-                                <code>"7"</code> as separate tokens. I ran a diagnostic cell against all 12 PDFs before
+                                <code>"7"</code> as separate tokens. I ran a diagnostic cell against all 42 PDFs before
                                 embedding to verify every critical number survived the cleaning step.
                             </p>
                         </div>
@@ -3411,9 +3428,10 @@
                     </div>
 
                     <p class="qa-strategy-body" data-i18n="qa.brasil2040.sections.evalStrategyIntro">
-                        The eval suite is a four-stage pipeline in GitHub Actions. Each stage answers a different
-                        question about the RAG system. A failure at any stage blocks the next — there is no point
-                        judging an answer if the wrong documents were retrieved.
+                        The eval suite has four stages, run as five GitHub Actions jobs. Retrieval gates faithfulness,
+                        latency and regression: there is no point judging an answer if the wrong documents
+                        were retrieved. Faithfulness and the hallucination and out-of-scope traps share one job;
+                        regression has its own.
                     </p>
 
                     <div class="qa-pipeline-row">
@@ -3426,18 +3444,23 @@
                                 data-i18n-html="qa.brasil2040.sections.pipeline.stage1Body">Calls <code>/search</code>
                                 at top_k=5 and top_k=10. Asserts the returned chunk source file matches the golden-set
                                 expectation. One English question tests whether multilingual-e5-large bridges the
-                                language gap against a Portuguese corpus.</div>
+                                language gap against a Portuguese corpus. At least 50% of the expected terms must also
+                                appear in the retrieved text. A connection failure now fails the test instead
+                                of skipping it.</div>
                         </div>
                         <div class="qa-pipeline-step">
                             <div class="qa-pipeline-step-num" data-i18n="qa.brasil2040.sections.pipeline.stage2Num">
                                 Stage 2 · Faithfulness</div>
                             <div class="qa-pipeline-step-title" data-i18n="qa.brasil2040.sections.pipeline.stage2Title">
-                                0.70 factual · 0.60 synthesis</div>
+                                Real /chat · verdict + threshold</div>
                             <div class="qa-pipeline-step-body"
-                                data-i18n-html="qa.brasil2040.sections.pipeline.stage2Body">Generates a live Gemini
-                                answer, then sends the triplet (question, answer, context) to the LLM judge. Two
-                                thresholds encode real uncertainty — a synthesis answer can be faithful to sources but
-                                structured differently from what the judge expects.</div>
+                                data-i18n-html="qa.brasil2040.sections.pipeline.stage2Body">Calls the real /chat
+                                endpoint
+                                (same SYSTEM_PROMPT, temperature and top_k=10 as production) and sends the triplet
+                                (question, answer, the same 10 retrieved chunks) to the LLM judge.
+                                A case passes only if the verdict is not "fail" and the score meets the threshold.
+                                A bare refusal with chunks retrieved fails unless the golden-set case declares
+                                allow_refusal.</div>
                         </div>
                         <div class="qa-pipeline-step">
                             <div class="qa-pipeline-step-num" data-i18n="qa.brasil2040.sections.pipeline.stage3Num">
@@ -3455,41 +3478,44 @@
                             <div class="qa-pipeline-step-num" data-i18n="qa.brasil2040.sections.pipeline.stage4Num">
                                 Stage 4 · Regression</div>
                             <div class="qa-pipeline-step-title" data-i18n="qa.brasil2040.sections.pipeline.stage4Title">
-                                Two-direction drift</div>
+                                Anchors + key numbers</div>
                             <div class="qa-pipeline-step-body"
-                                data-i18n-html="qa.brasil2040.sections.pipeline.stage4Body">Compares current answers
-                                against a committed JSON baseline. Missing anchor terms catch regressions. New numbers
-                                not in the baseline catch the subtler failure — a prompt change that inadvertently
-                                loosened factual constraints.</div>
+                                data-i18n-html="qa.brasil2040.sections.pipeline.stage4Body">Calls the real /chat and
+                                compares against
+                                a committed baseline captured from the same endpoint. The gate is anchors: expected
+                                golden-set terms must appear and the baseline's key numbers must survive,
+                                new numbers beyond the baseline flag loosened constraints. The baseline stores
+                                a hash of the SYSTEM_PROMPT, so a prompt change raises a warning to recapture it.
+                                Text similarity is reported but never gates.</div>
                         </div>
                     </div>
 
                     <div class="qa-metrics-grid">
                         <div class="qa-metric-cell">
-                            <div class="qa-metric-number">30</div>
+                            <div class="qa-metric-number">29</div>
                             <div class="qa-metric-label" data-i18n-html="qa.brasil2040.sections.metrics.m1">Golden-set
-                                questions<br>across 8 categories</div>
+                                questions<br>across 16 categories</div>
                         </div>
                         <div class="qa-metric-cell">
                             <div class="qa-metric-number">4</div>
                             <div class="qa-metric-label" data-i18n-html="qa.brasil2040.sections.metrics.m2">Judge
-                                dimensions<br>per answer</div>
+                                dimensions<br>(each test uses 1–2)</div>
                         </div>
                         <div class="qa-metric-cell">
                             <div class="qa-metric-number">5</div>
                             <div class="qa-metric-label" data-i18n-html="qa.brasil2040.sections.metrics.m3">CI/CD
-                                jobs<br>every commit</div>
+                                jobs<br>on demand</div>
                         </div>
                         <div class="qa-metric-cell">
-                            <div class="qa-metric-number">$0.0003</div>
+                            <div class="qa-metric-number">~$0.0003</div>
                             <div class="qa-metric-label" data-i18n-html="qa.brasil2040.sections.metrics.m4">Estimated
                                 cost<br>per query</div>
                         </div>
                     </div>
 
                     <p class="qa-strategy-result" data-i18n-html="qa.brasil2040.sections.strategyResult">
-                        <strong>Result:</strong> P95 retrieval under 5s, cost estimate printed every run, faithfulness
-                        verdict committed on every push.
+                        <strong>Result:</strong> retrieval P95 of 0.45 s (limit 5 s), cost estimate printed on every
+                        run, and a full run of 85 eval tests plus 10 regression tests, all green.
                     </p>
                 </div>
             </section>
@@ -3506,8 +3532,8 @@
 
                     <p class="qa-strategy-body" data-i18n="qa.brasil2040.sections.findingsIntro">
                         The golden set is the most important engineering decision in the eval system. A poorly designed
-                        golden set produces false confidence. These four categories show where the calibration was
-                        hardest — and why each decision mattered.
+                        golden set produces false confidence. These findings show where the calibration was hardest and
+                        why each decision mattered.
                     </p>
 
                     <div class="about-accordion bugs-accordion">
@@ -3591,14 +3617,13 @@
                                 <div class="bug-meta">
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.threshold">Threshold</span>
-                                        <span class="bug-meta-value"
-                                            data-i18n="qa.brasil2040.findings.f2.threshold">0.70 factual · 0.60
-                                            synthesis</span>
+                                        <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f2.threshold">0.6
+                                            in CI (0.7 default) · −0.1 for synthesis</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.questions">Questions</span>
-                                        <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f2.questions">14
-                                            factual + synthesis</span>
+                                        <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f2.questions">16
+                                            factual + synthesis (24 with extended difficulties)</span>
                                     </div>
                                 </div>
                                 <div class="bug-body">
@@ -3616,7 +3641,19 @@
                                         means the judge is fairly confident it's grounded. Synthesis questions get a 10%
                                         lower bar because cross-sector reasoning produces structurally different answers
                                         that can still be faithful. The thresholds encode uncertainty explicitly rather
-                                        than pretending the verdicts are binary.</p>
+                                        than pretending the verdicts are binary.
+                                    </p>
+                                    <p data-i18n-html="qa.brasil2040.findings.f2.p3"><strong>What the judge can't
+                                            see:</strong>
+                                        every faithfulness score printed in the logs was 1.00, and a refusal
+                                        always passes faithfulness because it asserts nothing false.
+                                        That let a legitimate question ("which sector is most vulnerable?")
+                                        get the out-of-scope refusal and still pass. The fix pairs the judge with 
+                                        programmatic checks: bare-refusal detection and a false out-of-scope check 
+                                        on every faithfulness case, anchor terms in the regression suite, 
+                                        and must_not_contain on the traps. The prompt was corrected and
+                                         the question now gets a real answer.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -3644,8 +3681,8 @@
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.artifact">Artifact</span>
                                         <span class="bug-meta-value"
-                                            data-i18n="qa.brasil2040.findings.f3.artifact">regression_diff.json
-                                            committed to repo</span>
+                                            data-i18n="qa.brasil2040.findings.f3.artifact">baseline committed, diff
+                                            uploaded as CI artifact</span>
                                     </div>
                                 </div>
                                 <div class="bug-body">
@@ -3655,6 +3692,13 @@
                                         terms catch regressions; new numbers not in the baseline catch a subtler failure
                                         where a prompt change inadvertently loosened factual constraints and the model
                                         started inventing numbers it wasn't inventing before.</p>
+                                    <p data-i18n-html="qa.brasil2040.findings.f3.p2"><strong>Why anchors, not
+                                            similarity:</strong> at temperature 0.7, the very first
+                                        comparison after capturing the baseline (same prompt, same retrieval) scored
+                                        only 0.26–0.40 text similarity. That is model variance, not regression,
+                                        so <code>regression_diff.json</code> is informational and the gate uses
+                                        anchor terms and key numbers.
+                                    </p>
                                     <span class="bug-label" data-i18n="qa.brasil2040.findings.f3.label">Regression test
                                         — two-direction number check</span>
                                     <div class="qa-code-block">
@@ -3742,8 +3786,8 @@
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.questions">Questions
                                             affected</span>
-                                        <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f5.questions">33
-                                            of 86 flagged, narrowed to 2 real gaps</span>
+                                        <span class="bug-meta-value" data-i18n="qa.brasil2040.findings.f5.questions">
+                                            33 of 86 refused: 5 correct, 28 false, narrowed to 2 real gaps</span>
                                     </div>
                                     <div class="bug-meta-item">
                                         <span class="bug-meta-key" data-i18n="qa.bugMetaKey.corpus">Corpus impact</span>
@@ -3757,7 +3801,7 @@
                                         a UI-suggested question — "Qual cultura tem maior potencial de adaptação ao
                                         aquecimento?" — kept returning "Não encontrei essa informação nos trechos
                                         fornecidos," even though the report covers exactly this. The golden set never
-                                        caught it because none of its 30 questions matched the phrasing the UI actually
+                                        caught it because none of its questions matched the phrasing the UI actually
                                         suggests to users.</p>
                                     <p data-i18n-html="qa.brasil2040.findings.f5.p2"><strong>Isolating the
                                             layer:</strong> the first move was ruling out whether this was a retrieval
@@ -3768,10 +3812,12 @@
                                         had to be in the prompt, not the vector store.</p>
                                     <p data-i18n-html="qa.brasil2040.findings.f5.p3"><strong>Bug 1 — scope drift in the
                                             prompt:</strong> the SYSTEM_PROMPT's topic list only named agriculture. The
-                                        corpus actually covers six sectors — energy, water resources, transport, coast,
-                                        urban drainage — but the model read that list as exhaustive and redirected users
+                                        corpus actually covers six sectors (agriculture, energy, water resources,
+                                        transport, coast and urban drainage),
+                                        but the model read that list as exhaustive and redirected users
                                         to "this is out of scope" for anything outside farming, even with the right
-                                        chunks sitting in context. 33 of 86 questions failed this way.</p>
+                                        chunks sitting in context. Together with Bug 2 below, this produced 28 false 
+                                        refusals out of 86 questions (33 refusals in total, 5 of them correct)</p>
                                     <p data-i18n-html="qa.brasil2040.findings.f5.p4"><strong>Bug 2 — junk chunks acting
                                             as similarity attractors:</strong> a separate corpus-wide scan — unique-word
                                         ratio, digit density, boilerplate detection — found that 802 of 2,203 embedded
@@ -3781,20 +3827,66 @@
                                         question and kept beating the chunk that actually answered it.
                                     </p>
                                     <p data-i18n-html="qa.brasil2040.findings.f5.p5"><strong>Fix and
-                                            verification:</strong> rewrote the scope section to name every sector,
-                                        deleted the 802 chunks after a manual count check, and reran the same
-                                        86-question set. Flagged cases dropped from 33 to 2 — both genuine corpus gaps
-                                        (one question referenced a river basin the report never covers), not bugs.</p>
+                                            verification:</strong> rewrote the scope section to name every sector and
+                                        deleted
+                                        the 802 chunks after a manual count check, then reran the same 86 questions.
+                                        Of the 33 refusals, 5 were correct (traps and out-of-scope), leaving 28 false
+                                        refusals.
+                                        After the fixes only 2 remained, both genuine corpus gaps. The two fixes were
+                                        applied
+                                        together, so the effect of each alone was not measured.</p>
                                     <span class="bug-label" data-i18n="qa.brasil2040.findings.f5.label">Diagnostic —
                                         telling retrieval failure apart from prompt failure</span>
                                     <div class="qa-code-block">
                                         <pre>chunks = search(question)          <span class="tok-cm"># hits /search directly</span>
-                    answer  = chat(question)           <span class="tok-cm"># hits /chat (search + Gemini)</span>
+                                        answer = chat(question)            <span class="tok-cm"># hits /chat (search + Gemini)</span>
 
-                    <span class="tok-kw">if</span> chunks <span class="tok-kw">and</span> <span class="tok-st">"Não encontrei"</span> <span class="tok-kw">in</span> answer:
-                        <span class="tok-cm"># real chunks came back, model still refused</span>
-                        <span class="tok-cm"># -&gt; bug is in SYSTEM_PROMPT, not retrieval</span></pre>
+                                        <span class="tok-kw">if</span> chunks <span class="tok-kw">and</span> <span class="tok-st">"Não encontrei"</span> <span class="tok-kw">in</span> answer:
+                                            <span class="tok-cm"># real chunks came back, model still refused</span>
+                                            <span class="tok-cm"># -&gt; bug is in SYSTEM_PROMPT, not retrieval</span></pre>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Auditing the Evals -->
+                        <div class="accordion-item">
+                            <div class="accordion-header">
+                                <h2 data-i18n-html="qa.brasil2040.findings.f6.title">6. Auditing the Evals — <strong>A
+                                        baseline that was itself a refusal</strong></h2>
+                                <span class="plus" aria-hidden="true"><svg viewBox="0 0 24 24" class="plus-icon">
+                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                    </svg></span>
+                            </div>
+                            <div class="accordion-content">
+                                <div class="bug-meta">
+                                    <div class="bug-meta-item"><span class="bug-meta-key"
+                                            data-i18n="qa.bugMetaKey.trigger">Trigger</span><span class="bug-meta-value"
+                                            data-i18n="qa.brasil2040.findings.f6.trigger">Audit of the eval suite
+                                            itself</span></div>
+                                    <div class="bug-meta-item"><span class="bug-meta-key"
+                                            data-i18n="qa.brasil2040.findings.f6.resultKey">Result</span><span
+                                            class="bug-meta-value severity-critical"
+                                            data-i18n="qa.brasil2040.findings.f6.result">Figure-only data, question
+                                            removed</span></div>
+                                </div>
+                                <div class="bug-body">
+                                    <p data-i18n-html="qa.brasil2040.findings.f6.p1"><strong>What was wrong:</strong>
+                                        the regression tests copied an older, stricter prompt instead of calling the
+                                        production endpoint, hashed <code>app.js</code> as if it were the prompt, and
+                                        treated "both answers are refusals" as a pass. The baseline for the SE/CO
+                                        deficit-risk question (expected 74%–99%) was a refusal, so the case passed
+                                        without checking anything.</p>
+                                    <p data-i18n-html="qa.brasil2040.findings.f6.p2"><strong>The fix:</strong> tests now
+                                        call the real <code>/chat</code> with production settings, the hash covers the
+                                        real SYSTEM_PROMPT, and a bare refusal fails. With that, the case failed for
+                                        real, on its expected anchors (74% and 99%).</p>
+                                    <p data-i18n-html="qa.brasil2040.findings.f6.p3"><strong>Root cause:</strong> two
+                                        scripts searched for the number in every Energia chunk in the database and in
+                                        the source PDFs (text and tables). It existed in neither: it lives only inside a
+                                        figure. The question was removed from the golden set and the limit documented,
+                                        since the dashboard shows a number the chatbot cannot confirm.</p>
                                 </div>
                             </div>
                         </div>
@@ -3986,10 +4078,7 @@
                             <text class="vm-body" x="608" y="216" fill="#d9770e"
                                 data-i18n-attr="x:qa.brasil2040.diagram2.col3NoteX"
                                 data-i18n="qa.brasil2040.diagram2.gapsNote2">red-team + Playwright E2E.</text>
-                            <text class="vm-body" x="608" y="200" fill="#d9770e"
-                                data-i18n="qa.brasil2040.diagram2.gapsNote1">Requires dedicated</text>
-                            <text class="vm-body" x="608" y="216" fill="#d9770e"
-                                data-i18n="qa.brasil2040.diagram2.gapsNote2">red-team + Playwright E2E.</text>
+
                         </svg>
                     </div>
 
@@ -4123,8 +4212,8 @@
                                     crop/scenario preserved when switching panels</td>
                             </tr>
                             <tr>
-                                <td data-i18n="qa.brasil2040.sections.table.row7Finding">All 8 sector panels with
-                                    correct KPIs</td>
+                                <td data-i18n="qa.brasil2040.sections.table.row7Finding">All 6 sector panels (+ About)
+                                    with correct KPIs</td>
                                 <td><span class="finding-pass"
                                         data-i18n="qa.brasil2040.sections.table.sevPass">Pass</span></td>
                                 <td data-i18n="qa.brasil2040.sections.table.no">No</td>
@@ -4179,10 +4268,11 @@
                     <div class="qa-two-col">
                         <div>
                             <p class="qa-col-head" data-i18n="qa.brasil2040.sections.ciCommitHead">What runs on every
-                                commit</p>
+                                workflow run</p>
                             <p class="qa-col-body" data-i18n-html="qa.brasil2040.sections.ciCommitBody">The
-                                <code>eval.yml</code> workflow defines five jobs. Retrieval tests run first and gate
-                                everything downstream — if a chunk embedding drifts or a source file is renamed,
+                                <code>evals.yml</code> workflow (manual dispatch, with a selector for each test group)
+                                defines five jobs. Retrieval tests run first and gate
+                                everything downstream, if a chunk embedding drifts or a source file is renamed,
                                 retrieval fails and the judge never evaluates a response grounded in the wrong context.
                                 The latency suite runs in parallel with faithfulness, printing a cost-per-query estimate
                                 to the job log on every run.
@@ -4190,13 +4280,14 @@
                         </div>
                         <div>
                             <p class="qa-col-head" data-i18n="qa.brasil2040.sections.ciRegressionHead">What the prompt
-                                regression commits</p>
+                                regression keeps</p>
                             <p class="qa-col-body" data-i18n-html="qa.brasil2040.sections.ciRegressionBody">Each
                                 regression run uploads a <code>regression_diff.json</code> artifact — a structured diff
                                 of what changed between current answers and the baseline, with similarity scores and
-                                answer previews. The history of how the system's answers have changed over time is
-                                auditable at the commit level, not just the deployment level. If a context window change
-                                triples the input token count, the cost monitor catches it before the API bill does.</p>
+                                answer previews. The baseline is versioned in the repo, so a prompt change shows up as a
+                                hash mismatch,
+                                and each run's diff is kept as a CI artifact. If a change pushes retrieved context
+                                (measured at top_k=5) past the 4,000-token budget, the token test fails.</p>
                         </div>
                     </div>
 
@@ -4217,17 +4308,35 @@
                     <div class="qa-callout" style="margin-top: 1.5rem;">
                         <p class="qa-callout-head" data-i18n="qa.brasil2040.sections.auditSuiteHead">Auditing the eval
                             suite's own blind spots</p>
-                        <p class="qa-callout-body" data-i18n-html="qa.brasil2040.sections.auditSuiteBody">A green CI
-                            badge doesn't mean the tests ran — it means nothing failed, and those aren't the same thing.
-                            Three patterns in the original suite made that gap real: <code>pytest.skip()</code> on a
-                            connection error looked identical to a passing test in the job summary; a latency test
-                            converted any slow run into <code>xfail</code> on the assumption it was "CI runner
-                            variance," which would hide a genuine regression forever; and the nightly full-eval job
-                            explicitly excluded the prompt regression file with <code>--ignore</code>, so the "complete"
-                            run never actually ran it. Fixed all three — skips became hard failures, latency now takes
-                            the median of three runs before asserting, and the ignore flag is gone. None of this changes
-                            what the AI answers. It changes whether the pipeline can be trusted to notice when it stops.
+                        <p class="qa-callout-body" data-i18n-html="qa.brasil2040.sections.auditSuiteBody">A green CI badge does 
+                            not mean the tests ran, it means nothing failed, and those are not the same thing. 
+                            Two patterns in the original suite made that gap real: 1) <code>pytest.skip()</code> 
+                            on a connection error looked identical to a passing test in the job summary, and 2) 
+                            a latency test converted any slow run into <code>xfail</code> on the assumption it was 
+                            "CI runner variance," which would hide a genuine regression forever. The deeper problems 
+                            were elsewhere: the faithfulness and regression tests generated answers from a stale copy
+                             of the system prompt (so editing the production prompt changed nothing), 
+                             the prompt hash was computed over <code>app.js</code>, the faithfulness 
+                             threshold was overridden by any "pass" verdict from the judge, and "both answers 
+                             are refusals" counted as a pass. All of these were fixed: connection-error skips 
+                             became hard failures, latency takes the median of three runs, the tests call the real 
+                             endpoint, and a bare refusal fails. None of this changes what the AI answers. 
+                             It changes whether the pipeline can be trusted to notice when it stops. 
+                             (The full nightly run still excludes the regression file on purpose: 
+                             it has its own job, and running it twice would only burn API quota.)
                         </p>
+                    </div>
+
+                    <div class="qa-callout" style="margin-top: 1.5rem;">
+                        <p class="qa-callout-head" data-i18n="qa.brasil2040.sections.limitsHead">Known limits of this
+                            suite</p>
+                        <p class="qa-callout-body" data-i18n-html="qa.brasil2040.sections.limitsBody">The judge is
+                            lenient (all logged faithfulness scores were 1.00), so it is paired with programmatic
+                            checks. At temperature 0.7 answer wording varies a lot, so regression gates on anchors, and
+                            an anchor can fail occasionally from variance alone. The end-to-end latency test uses its
+                            own simplified prompt, so it measures time, not quality. Numbers that exist only in PDF
+                            figures are outside the RAG. The 802-chunk cleanup used a digit-density heuristic that can
+                            also delete legitimate numeric chunks, and it is not yet part of the ingestion pipeline.</p>
                     </div>
 
                 </div>
@@ -4902,18 +5011,21 @@
                                         <strong>What broke:</strong> the product detail discount test used
                                         <code>page.locator('span.discounted')</code>, which resolved to two elements.
                                         Reading the HTML showed the <code>discounted</code> class was applied via the
-                                        same
-                                        Angular <code>[ngClass]</code> conditional to <em>both</em> the unit-price
+                                        same Angular <code>[ngClass]</code> conditional to <em>both</em> the unit-price
                                         column
-                                        and
-                                        the total column.
+                                        and the total column.
                                     </p>
+                                    <p data-i18n-html="qa.brasil2040.findings.f3.p2"><strong>Why anchors, not
+                                            similarity:</strong> at temperature 0.7,
+                                        the very first comparison after capturing the baseline (same prompt,
+                                        same retrieval) scored only 0.26–0.40 text similarity.
+                                        That is model variance, not regression, so <code>regression_diff.json</code>
+                                        is informational and the gate uses anchor terms and key numbers.</p>
                                     <p data-i18n-html="qa.playwright.findings.f3.p2">
                                         <strong>The lesson:</strong> the fix wasn't tacking on <code>.first()</code>
-                                        arbitrarily
-                                        — it was understanding the table's structure and explicitly deciding, and
-                                        documenting,
-                                        which of the two columns the test actually needed to validate.
+                                        arbitrarily — it was understanding the table's structure and explicitly
+                                        deciding, and
+                                        documenting, which of the two columns the test actually needed to validate.
                                     </p>
                                     <a class="finding-source-link"
                                         href="https://github.com/akaselvas/toolshop-automation/blob/main/tests/02_product-detail.spec.ts#L39"
@@ -6038,7 +6150,7 @@
                     into the layers underneath — session state, concurrency, embeddings, CI pipelines — the
                     places where a beautiful UI can still hide a fragile, insecure, or unreliable backend. Across
                     the three case studies on this page I've applied a designer's attention to detail alongside
-                    an SDET's paranoia for edge cases: a 340-point security and infrastructure audit on a Flask
+                    an SDET's paranoia for edge cases: a 301-point security and infrastructure audit on a Flask
                     application, a hallucination and faithfulness evaluation suite for a RAG-based AI, and a
                     161-test Playwright regression suite with its own CI pipeline built from the ground up.
                     Different stacks, same underlying discipline — assume nothing works until there's a test
